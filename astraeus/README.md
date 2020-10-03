@@ -1,4 +1,4 @@
-# astraeus-frontend
+# astraeus
 
 ## Project setup
 ```
