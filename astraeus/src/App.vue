@@ -1,28 +1,26 @@
 <template>
   <div id="container">
-    <top-row>
-
-      <home-logo-container> 
-        <router-link to="/"><img src="@/assets/m1k.png" /></router-link> 
-      </home-logo-container>
-
-      <padding/>
-
-      <settings-container>
-        <router-link to="/"><img src="@/assets/m1k.png" /></router-link> 
-      </settings-container>
-
-      <logout-container/>
-
-    </top-row>
-
+    <TopRow />
     <hr/>
-
-    <div id="main">
-        <router-view />
-    </div>
+    <HomeBody />
   </div>
 </template>
+
+<script lang="ts">
+import { createApp, defineComponent } from 'vue' 
+import TopRow from "@/components/TopRow.vue"
+import HomeBody from "@/components/HomeBody.vue"
+//import FriendsBar from '@/components/FriendsBar.vue'
+//import FlocksBar from '@/components/FlocksBar.vue'
+
+export default {
+  components: {
+    TopRow,
+    HomeBody
+  }
+}
+
+</script>
 
 <style lang="scss">
  * {
@@ -49,47 +47,5 @@ hr {
 #container {
   display: flex;
   flex-direction: column;
-}
-
-#container > top-row {
-  display: flex;
-  background-color: 2c3e50;
-  flex: 90%;
-}
-
-top-row > home-logo-container {
-  flex : 2%;
-  background-color: 2c3e50;
-  
-  margin-top: 5px;
-  margin-right: 10px;
-  margin-left: 15px;
-}
-
-top-row > settings-container {
-  flex : 0 0 50px;
-  justify-content: flex-end;
-  margin-right: 10px;
-  margin-left: 10px;
-  margin-top: 5px;
-
-}
-
-top-row > logout-container {
-  flex : 0 0 50px;
-  background-color: yellow;
-  margin-top: 5px;
-  margin-right: 15px;
-
-}
-
-top-row > padding {
-  flex: 98%;
-  background-color: green;
-}
-
-#main {
-  flex: 10%;
-  margin-top: 2px;
 }
 </style>

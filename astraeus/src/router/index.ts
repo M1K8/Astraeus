@@ -13,6 +13,29 @@ const routes: Array<RouteRecordRaw> = [
     component: () =>
       import(/* webpackChunkName: "about" */ "../views/About.vue")
   },
+  {
+    path: "/flock/:slug",
+    name: "Flock",
+    props: true,
+    component: () => 
+      import(/* webpackChunkName: "Flock" */ "../views/Flock.vue")
+  },
+  {
+    path: "/friend/:slug",
+    name: "Friend",
+    props: true,
+    component: () => 
+      import(/* webpackChunkName: "Friend" */ "../views/Friend.vue")
+  },
+  {
+    path: "/search",
+    name: "Search",
+    props: true,
+    component: () => 
+      import(/* webpackChunkName: "Search" */ "../views/Search.vue")
+  }
+
+
   //{
   //  path: "/login",
   //  name: "Login",
