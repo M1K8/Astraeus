@@ -1,31 +1,12 @@
 <template>
   <div id="container">
-    <TopRow />
-    <hr/>
-    <HomeBody />
+    <router-view />
   </div>
 </template>
 
-<script lang="ts">
-import { createApp, defineComponent } from 'vue' 
-import TopRow from "@/components/TopRow.vue"
-import HomeBody from "@/components/HomeBody.vue"
-//import FriendsBar from '@/components/FriendsBar.vue'
-//import FlocksBar from '@/components/FlocksBar.vue'
-
-export default {
-  components: {
-    TopRow,
-    HomeBody
-  }
-}
-
-</script>
-
 <style lang="scss">
  * {
-       margin: 0
-       ;
+       margin: 0;
        background-color: #2c3e50 ;
    }
 
@@ -35,7 +16,6 @@ export default {
   -moz-osx-font-smoothing: grayscale;
   text-align: center;
   color: white;
-  background-color: #2c3e50;
 } 
 
 hr {
