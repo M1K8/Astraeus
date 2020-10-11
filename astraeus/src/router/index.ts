@@ -12,6 +12,7 @@ const routes: Array<RouteRecordRaw> = [
         path: "/flock/:slug",
         name: "Flock",
         props: true,
+        meta: { requiresAuth: true},
         component: () => 
           import(/* webpackChunkName: "FlockView" */ "../views/children/FlockView.vue")
       },
@@ -19,6 +20,7 @@ const routes: Array<RouteRecordRaw> = [
         path: "/friend/:slug",
         name: "Friend",
         props: true,
+        meta: { requiresAuth: true},
         component: () => 
           import(/* webpackChunkName: "FriendView" */ "../views/children/FriendView.vue")
       },
@@ -26,6 +28,7 @@ const routes: Array<RouteRecordRaw> = [
         path: "/add",
         name: "AddFriend",
         props: true,
+        meta: { requiresAuth: true},
         component: () => 
           import(/* webpackChunkName: "AddFriend" */ "../views/children/AddFriend.vue")
       },
@@ -33,6 +36,7 @@ const routes: Array<RouteRecordRaw> = [
         path: "/activity",
         name: "Activity",
         props: true,
+        meta: { requiresAuth: true},
         component: () => 
           import(/* webpackChunkName: "Activity" */ "../views/children/Activity.vue")
       }
@@ -69,6 +73,23 @@ const routes: Array<RouteRecordRaw> = [
 const router = createRouter({
   history: createWebHistory(process.env.BASE_URL),
   routes
+});
+
+router.beforeEach ( (to, from, next) => {
+  if (to.matched.some(record => record.meta.requiresAuth)) {
+    const va = 2;
+    if (va < 1) {
+    //if (!store.user) {
+      next({
+        name: "Login"
+      });
+    } else {
+      // if !(exists(next)), next {404}
+      next();
+    }
+  } else {
+    next();
+  }
 });
 
 export default router;
