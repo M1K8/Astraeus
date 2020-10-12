@@ -16,7 +16,7 @@
                     <label for="password">Password</label>
                 </span>
             </div>
-             <Button id="login" :style="loginButtStyleObj" class="p-button-success p-button-rounded p-button-raised p-button-lg">
+             <Button @click="login" id="login" :style="loginButtStyleObj" class="p-button-success p-button-rounded p-button-raised p-button-lg">
                  <p >Login</p>
                  <i class="pi pi-check"/>
              </Button>
@@ -26,8 +26,12 @@
 
 <script lang="ts">
 import Vue, { reactive, ref } from 'vue'
+import { useStore } from 'vuex'
 import InputText from 'primevue/inputtext'
 import Button from 'primevue/button';
+import useVuelidate from "@vuelidate/core";
+import { required, email, minLength } from "@vuelidate/validators";
+import { db } from '../../firebase'
 
 export default {
     components : {
@@ -57,7 +61,6 @@ export default {
             margin: "auto"
         })
 
-
         const textStyleObj = reactive({
             "padding-bottom": "20px",
             background: "inherit",
@@ -74,7 +77,6 @@ export default {
             transition: "0.2s"
         })
 
-        
         function hoverOn() {
             mainStyleObj.width= "400px";
             mainStyleObj.height = "550px";
@@ -95,12 +97,25 @@ export default {
             loginButtStyleObj["margin-top"] = "30px";
         }
 
+        function login() {
+            db.ref("users").child(uNameStr.value).set(pwdStr.value);
+            useStore().commit("SET_AUTH");
+        }
 
-        return {uNameStr, pwdStr, mainStyleObj, textStyleObj, logoStyleObj, loginButtStyleObj, hoverOn, hoverOff }
+        const rules = {
+            uNameStr: { required },
+            pwdStr: { required, minLength: minLength(8) }
+        };
+
+        const $v = useVuelidate(
+            rules,
+            { uNameStr, pwdStr }
+        );
+
+        return {uNameStr, pwdStr, mainStyleObj, textStyleObj, logoStyleObj, loginButtStyleObj, hoverOn, hoverOff, login, $v }
     }
 }
 </script>
-
 
 <style scoped lang="scss">
 html, body {
@@ -109,7 +124,6 @@ html, body {
     margin: 0;
     padding: 0;
 }
-
 
 body{
     background: linear-gradient(126deg, #4d5bb6, #1a336f, #0f8360, #7aae14);

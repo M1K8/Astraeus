@@ -3,4 +3,5 @@ declare module "*.vue" {
   const component: ReturnType<typeof defineComponent>;
   export default component;
 }
-declare module 'vue-context'
+declare module '@vuelidate/core';
+declare module '@vuelidate/validators';

@@ -49,16 +49,30 @@ const routes: Array<RouteRecordRaw> = [
       import(/* webpackChunkName: "About" */ "../views/About.vue")
   },
   {
-    path: "/login",
-    name: "Login",
+    path: "/app",
+    name: "Splash",
     component: () =>
-      import(/* webpackChunkName: "Login" */ "../views/Login.vue")
-  },
-  {
-    path: "/signup",
-    name: "Signup",
-    component: () =>
-      import(/* webpackChunkName: "Signup" */ "../views/Signup.vue")
+      import(/* webpackChunkName: "Splash" */ "../views/Splash.vue"),
+    children: [
+      {
+        path: "/login",
+        name: "Login",
+        component: () =>
+          import(/* webpackChunkName: "Login" */ "../views/children/Login.vue")
+      },
+      {
+        path: "/signup",
+        name: "Signup",
+        component: () =>
+          import(/* webpackChunkName: "Signup" */ "../views/children/Signup.vue")
+      },
+      //{
+      //  path: "/redirect",
+      //  name: "Redirect",
+      //  component: () =>
+      //    import(/* webpackChunkName: "Redirect" */ "../views/Redirect.vue")
+      //}
+    ]
   },
   //{
   //  path "/404",
