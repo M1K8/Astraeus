@@ -58,14 +58,14 @@ const routes: Array<RouteRecordRaw> = [
       {
         path: "/login",
         name: "Login",
-        meta: { noobOnly: true},
+        meta: { noobOnly: true },
         component: () =>
           import(/* webpackChunkName: "Login" */ "../views/children/Login.vue")
       },
       {
         path: "/signup",
         name: "Signup",
-        meta: { noobOnly: true},
+        meta: { noobOnly: true },
         component: () =>
           import(/* webpackChunkName: "Signup" */ "../views/children/Signup.vue")
       }

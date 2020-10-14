@@ -1,11 +1,28 @@
 <template>
-    <router-link to="/"><img src="@/assets/m1k.png" id="logo" /></router-link> 
+    <router-link to="/"><img src="@/assets/m1k.png" @click="signout" id="logo" /></router-link> 
 </template>
 
 <script lang="ts">
 import Vue, { defineComponent } from 'vue'
+import { useRouter } from 'vue-router'
+import { useStore } from 'vuex'
 
-export default defineComponent({});
+export default {
+  setup() {
+    const store = useStore();
+    const router = useRouter();
+
+
+    async function signout() {
+      await store.dispatch('signOut');
+      
+      router.push('Login');
+
+    }
+
+    return { signout }
+  }
+}
 
 </script>
 

@@ -12,7 +12,7 @@ type State = {
 export default createStore({
   state: {
       user: {},
-      uid : "",
+      uid : null,
       unsubscribeAuthObserver : null,
       signup : false
   },
@@ -33,16 +33,29 @@ export default createStore({
   actions: {
     bindUser: firebaseAction( ({ getters, bindFirebaseRef }) => {
       const uid = getters.getUid;
+      console.log("user bound")
       return bindFirebaseRef('user', db.ref(`users/${uid}`))
     }),
 
-    setUID: ({commit}, uid) => commit("SET_UID",uid),
+    unbindUser: firebaseAction( ({ unbindFirebaseRef }) => {
+      unbindFirebaseRef('user')
+      console.log("user unbound")
+    }),
+
+    setUID: ({commit}, uid) => {
+      commit("SET_UID",uid)
+      console.log("uid set to " + uid)
+    },
 
     setSignup: ({commit}, isSignup) => commit("SET_SIGNUP", isSignup),
+
+    signOut: async (ctx) =>  await auth.signOut(),
+      //unbind user & unset auth will be handled by listener
 
     initAuth: ( {dispatch, commit, getters, state} ) => {
       return new Promise( (resolve, reject) => {
         if (state.unsubscribeAuthObserver) {
+          console.log("unsub")
           state.unsubscribeAuthObserver()
         }
         const unsub = auth.onAuthStateChanged( async (user) => {
@@ -64,6 +77,7 @@ export default createStore({
           } else {
               console.log("Auth logged out")
               await dispatch('setUID', null);
+              await dispatch('unbindUser');
               resolve(null)
           }
           commit('SET_UNSUB', unsub);
