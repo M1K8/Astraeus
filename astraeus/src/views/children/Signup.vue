@@ -47,7 +47,6 @@
                     </div>                    
                 </span>
             </div>
-
             <div class="text-box" :style="textStyleObj">
                 <span class="p-float-label ">
                     <InputText id="confirm-password" type="password" v-model="pwdConfStr" :class="{ 'p-invalid' : $v.pwdConfStr.$error} "/>
@@ -77,6 +76,7 @@ import Button from 'primevue/button';
 import { db, auth } from '../../firebase'
 import useVuelidate from "@vuelidate/core";
 import { useRouter } from 'vue-router'
+import { useStore } from 'vuex'
 import { required, email, minLength, maxLength } from "@vuelidate/validators";
 
 export default {
@@ -99,6 +99,7 @@ export default {
         const emailStr     = ref("");
         const visible      = ref(false);
         const router       = useRouter();
+        const store        = useStore();
 
         const mainStyleObj = reactive( {
             opacity: 0.45,
@@ -147,7 +148,6 @@ export default {
 
         }
 
-
         function hoverOff() {
             mainStyleObj.width= "300px";
             mainStyleObj.opacity = 0.45;
@@ -160,21 +160,41 @@ export default {
         } 
 
         async function signup() {
+            store.dispatch("setSignup", true);
             if (pwdStr.value != pwdConfStr.value) {
                 alert("Passwords do not match")
                 pwdConfStr.value = "";
             } else {
+                const user = await auth.createUserWithEmailAndPassword(emailStr.value, pwdStr.value).catch( error => {
+                    const errorCode = error.code;
+                    const errorMessage = error.message;
+                    switch (errorCode) {
+                        case 'auth/email-already-in-use':
+                            alert(errorMessage);
+                            break;
+                        default:
+                             alert(errorCode.message);
+                        }
+                    emailStr.value = "";
+                    pwdStr.value = "";
+                    pwdConfStr.value = "";
+                })
+                auth.signOut();
 
-                auth.createUserWithEmailAndPassword(emailStr.value, pwdStr.value).then( user => {
+                if (user) {
                     db.ref("users").child(user.user!.uid).set( {
                         name: uNameStr.value + "#0000",
                         email: emailStr.value
                     })
 
-                    user.user!.sendEmailVerification();
-                });
+                    db.ref("online").child(user.user!.uid).set(1);
 
-                router.push('activity');
+                    await user.user!.sendEmailVerification();
+
+                    router.push( {name: 'Login', query: {signup: "true"}});
+                }
+
+                store.dispatch("setSignup", false);
             }
         };
 
@@ -185,39 +205,6 @@ export default {
 
 
 <style scoped lang="scss">
-html, body {
-	width: 100vw;
-	height: 100vh;
-    margin: 0;
-    padding: 0;
-}
-
-
-body{
-    background: linear-gradient(126deg, #4d5bb6, #1a336f, #0f8360, #7aae14);
-    background-size: 600% 600%;
-
-    -webkit-animation: Gradient 30s ease infinite;
-    -moz-animation: Gradient 30s ease infinite;
-    animation: Gradient 30s ease infinite;
-}
-
-@-webkit-keyframes Gradient {
-    0%{background-position:0% 50%}
-    50%{background-position:100% 50%}
-    100%{background-position:0% 50%}
-}
-@-moz-keyframes Gradient {
-    0%{background-position:0% 50%}
-    50%{background-position:100% 50%}
-    100%{background-position:0% 50%}
-}
-@keyframes Gradient {
-    0%{background-position:0% 50%}
-    50%{background-position:100% 50%}
-    100%{background-position:0% 50%}
-}
-
 label {
     background:rgba(0,0,0,0);
     color: #000000;

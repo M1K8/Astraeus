@@ -1,19 +1,38 @@
 <template>
     <body> 
+        <Dialog header="Signup Successful!" v-model:visible="isParamAfterSignup">
+            Please confirm your account in the email sent to you.
+        </Dialog>
         <form id="main-login" :style="mainStyleObj" @mouseover="hoverOn" @mouseout="hoverOff">
             <div id="logo" :style="logoStyleObj"> <img src='@/assets/m1k.png'/> </div>
+
             <div id="text-box" :style="textStyleObj">
-                <span class="p-float-label p-input-icon-left">
-                    <i class="pi pi-user" />
-                    <InputText id="username" type="text" v-model="uNameStr" />
-                    <label  for="username">Username</label>
+                <span class="p-float-label ">
+                    <InputText id="email" type="text" v-model="emailStr" :class="{ 'p-invalid' : $v.emailStr.$error} "/>
+                    <label v-if="visible" for="email">Email</label>
+                    <div v-if="$v.emailStr.$error">
+                        <div v-for="(error, index) of $v.$errors"
+                            :key="index"> 
+                            <small v-if="error.$property == 'emailStr'" class="p-invalid" >
+                                {{error.$message}} 
+                            </small>
+                            </div>
+                    </div>                    
                 </span>
             </div>
-            <div class="text-box">
-                <span class="p-float-label p-input-icon-left">
-                    <i class="pi pi-lock" />
-                    <InputText id="password" type="password" v-model="pwdStr" />
-                    <label for="password">Password</label>
+  
+            <div class="text-box" :style="textStyleObj">
+                <span class="p-float-label ">
+                    <InputText id="password" type="password" v-model="pwdStr" :class="{ 'p-invalid' : $v.pwdStr.$error} "/>
+                    <label v-if="visible" for="password">Password</label>
+                    <div v-if="$v.pwdStr.$error">
+                        <div v-for="(error, index) of $v.$errors"
+                            :key="index"> 
+                            <small v-if="error.$property == 'pwdStr'" class="p-invalid" >
+                                {{error.$message}} 
+                            </small>
+                            </div>
+                    </div>                    
                 </span>
             </div>
              <Button @click="login" id="login" :style="loginButtStyleObj" class="p-button-success p-button-rounded p-button-raised p-button-lg">
@@ -25,22 +44,36 @@
 </template>
 
 <script lang="ts">
-import Vue, { reactive, ref } from 'vue'
+import Vue, { computed, reactive, ref } from 'vue'
 import { useStore } from 'vuex'
+import { useRoute, useRouter } from 'vue-router'
 import InputText from 'primevue/inputtext'
 import Button from 'primevue/button';
+import Dialog from 'primevue/dialog';
 import useVuelidate from "@vuelidate/core";
-import { required, email, minLength } from "@vuelidate/validators";
-import { db } from '../../firebase'
+import { required, email, minLength, maxLength } from "@vuelidate/validators";
+import { db, auth } from '../../firebase'
 
 export default {
     components : {
         InputText,
-        Button
+        Button,
+        Dialog
+    },
+    validations() {
+        return {
+            emailStr : {required, email, $autoDirty: true},
+            pwdStr: { required, $autoDirty: true, minLength: minLength(8) }
+        }
     },
     setup() {
-        const uNameStr = ref("");
+        const emailStr = ref("");
         const pwdStr   = ref("");
+        const visible  = ref(false);
+
+        const route = useRoute();
+        const router = useRouter()
+        const store = useStore();
 
         const mainStyleObj = reactive( {
             opacity: 0.45,
@@ -77,6 +110,8 @@ export default {
             transition: "0.2s"
         })
 
+        const isParamAfterSignup = ref(route.query.signup)
+
         function hoverOn() {
             mainStyleObj.width= "400px";
             mainStyleObj.height = "550px";
@@ -85,6 +120,7 @@ export default {
             textStyleObj["padding-bottom"] = "30px";
             logoStyleObj["padding-bottom"] = "50px";
             loginButtStyleObj["margin-top"] = "60px";
+            visible.value = true;
 
         }
         function hoverOff() {
@@ -95,24 +131,35 @@ export default {
             textStyleObj["padding-bottom"] = "20px";
             logoStyleObj["padding-bottom"] = "20px";
             loginButtStyleObj["margin-top"] = "30px";
+            visible.value = false;
         }
 
-        function login() {
-            db.ref("users").child(uNameStr.value).set(pwdStr.value);
-            useStore().commit("SET_AUTH");
+        async function login() {
+            await auth.signInWithEmailAndPassword(emailStr.value, pwdStr.value).catch(function (error) {
+                const errorCode = error.code;
+                const errorMessage = error.message;
+                switch (errorCode) {
+                    case 'auth/wrong-password':
+                        alert('Wrong password.');
+                        pwdStr.value = "";
+                        break;
+                    case 'auth/user-not-found':
+                        alert('The user does not exist!')
+                        emailStr.value = "";
+                        pwdStr.value = "";
+                        break;
+                    default:
+                         alert(errorMessage);
+                         emailStr.value = "";
+                         pwdStr.value = "";
+                    }
+            });
+
+            router.push('activity')
+            ///which should trigger the auth listener defined elsewhere...
         }
 
-        const rules = {
-            uNameStr: { required },
-            pwdStr: { required, minLength: minLength(8) }
-        };
-
-        const $v = useVuelidate(
-            rules,
-            { uNameStr, pwdStr }
-        );
-
-        return {uNameStr, pwdStr, mainStyleObj, textStyleObj, logoStyleObj, loginButtStyleObj, hoverOn, hoverOff, login, $v }
+        return {emailStr, pwdStr, mainStyleObj, textStyleObj, logoStyleObj, loginButtStyleObj, hoverOn, hoverOff, login, isParamAfterSignup, visible }
     }
 }
 </script>
@@ -154,7 +201,6 @@ label {
     background:rgba(0,0,0,0);
     color: #000000;
     align-items: flex-start;
-    padding-left: 21px;
     padding-top: 2px;
 }
 

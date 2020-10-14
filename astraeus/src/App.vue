@@ -3,6 +3,43 @@
     <router-view />
   </div>
 </template>
+<script lang="ts">
+import Vue from 'vue'
+import { useRouter } from 'vue-router';
+import { useStore } from 'vuex'
+export default {
+  setup() {
+    const router = useRouter();
+    const store = useStore();
+   
+    router.beforeEach( (to, from, next) => {
+      store.dispatch('initAuth').then( user => {
+        if (to.matched.some(record => record.meta.requiresAuth)) {
+          if (user) {
+            console.log("yay");
+            next();
+          } else {
+            // if !(exists(next)), next {404}
+            console.log("nay")
+            next({
+              name: "Login"
+            });
+          }
+        } else if (to.matched.some(record => record.meta.noobOnly)) {
+            if (user) {
+              next('activity');
+            } else {
+              next();
+            }
+        } else {
+          next();
+        }
+      })
+    });
+
+  }
+}
+</script>
 
 <style lang="scss">
  * {
