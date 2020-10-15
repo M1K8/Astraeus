@@ -50,7 +50,7 @@ const routes: Array<RouteRecordRaw> = [
       import(/* webpackChunkName: "About" */ "../views/About.vue")
   },
   {
-    path: "/app",
+    path: "/refer",
     name: "Splash",
     component: () =>
       import(/* webpackChunkName: "Splash" */ "../views/Splash.vue"),

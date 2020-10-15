@@ -3,14 +3,14 @@
         <Dialog header="Signup Successful!" v-model:visible="isParamAfterSignup">
             Please confirm your account in the email sent to you.
         </Dialog>
-        <form id="main-login" :style="mainStyleObj" @mouseover="hoverOn" @mouseout="hoverOff">
+        <form @mouseover="hoverOn" @mouseleave="hoverOff" id="main-login" :style="mainStyleObj">
             <div id="logo" :style="logoStyleObj"> <img src='@/assets/m1k.png'/> </div>
 
             <div id="text-box" :style="textStyleObj">
-                <span class="p-float-label ">
-                    <InputText id="email" type="text" v-model="emailStr" :class="{ 'p-invalid' : $v.emailStr.$error} "/>
+                <span class="p-float-label">
+                    <InputText id="email" type="text" v-model="emailStr" :class="{ 'p-invalid' : false} "/>
                     <label v-if="visible" for="email">Email</label>
-                    <div v-if="$v.emailStr.$error">
+                    <div v-if="false">
                         <div v-for="(error, index) of $v.$errors"
                             :key="index"> 
                             <small v-if="error.$property == 'emailStr'" class="p-invalid" >
@@ -22,10 +22,10 @@
             </div>
   
             <div class="text-box" :style="textStyleObj">
-                <span class="p-float-label ">
-                    <InputText id="password" type="password" v-model="pwdStr" :class="{ 'p-invalid' : $v.pwdStr.$error} "/>
+                <span class="p-float-label">
+                    <InputText id="password" type="password" v-model="pwdStr" :class="{ 'p-invalid' : false} "/>
                     <label v-if="visible" for="password">Password</label>
-                    <div v-if="$v.pwdStr.$error">
+                    <div v-if="false">
                         <div v-for="(error, index) of $v.$errors"
                             :key="index"> 
                             <small v-if="error.$property == 'pwdStr'" class="p-invalid" >
@@ -35,10 +35,13 @@
                     </div>                    
                 </span>
             </div>
-             <Button @click="login" id="login" :style="loginButtStyleObj" class="p-button-success p-button-rounded p-button-raised p-button-lg">
-                 <p >Login</p>
+             <Button v-if="visible" @click="login" id="login" :style="loginButtStyleObj" class="p-button-success p-button-rounded p-button-raised p-button-lg">
+                 <p>Login</p>
                  <i class="pi pi-check"/>
              </Button>
+
+             <Button label="Link" class="p-button-link" v-if="visible" id="signup-link" @click="navToSignup"> Don't have an account? Click here to Signup </Button>
+
         </form>
     </body>
 </template>
@@ -50,8 +53,6 @@ import { useRoute, useRouter } from 'vue-router'
 import InputText from 'primevue/inputtext'
 import Button from 'primevue/button';
 import Dialog from 'primevue/dialog';
-import useVuelidate from "@vuelidate/core";
-import { required, email, minLength, maxLength } from "@vuelidate/validators";
 import { db, auth } from '../../firebase'
 
 export default {
@@ -59,12 +60,6 @@ export default {
         InputText,
         Button,
         Dialog
-    },
-    validations() {
-        return {
-            emailStr : {required, email, $autoDirty: true},
-            pwdStr: { required, $autoDirty: true, minLength: minLength(8) }
-        }
     },
     setup() {
         const emailStr = ref("");
@@ -84,7 +79,7 @@ export default {
             "flex-direction": "column",
             padding: "50px",
             width: "300px",
-            height: "350px",
+            height: "300px",
             position: "absolute",
             top:0,
             bottom: 0,
@@ -107,6 +102,7 @@ export default {
 
         const loginButtStyleObj = reactive({
             "margin-top" : "30px",
+            "margin-bottom": "20px",
             transition: "0.2s"
         })
 
@@ -118,19 +114,17 @@ export default {
             mainStyleObj.opacity = 0.75;
             mainStyleObj["border-radius"] = "35px"
             textStyleObj["padding-bottom"] = "30px";
-            logoStyleObj["padding-bottom"] = "50px";
-            loginButtStyleObj["margin-top"] = "60px";
+            logoStyleObj["padding-bottom"] = "60px";
             visible.value = true;
 
         }
         function hoverOff() {
             mainStyleObj.width= "300px";
             mainStyleObj.opacity = 0.45;
-            mainStyleObj.height = "350px";
+            mainStyleObj.height = "300px";
             mainStyleObj["border-radius"] = "40px"
             textStyleObj["padding-bottom"] = "20px";
             logoStyleObj["padding-bottom"] = "20px";
-            loginButtStyleObj["margin-top"] = "30px";
             visible.value = false;
         }
 
@@ -159,7 +153,11 @@ export default {
             ///which should trigger the auth listener defined elsewhere...
         }
 
-        return {emailStr, pwdStr, mainStyleObj, textStyleObj, logoStyleObj, loginButtStyleObj, hoverOn, hoverOff, login, isParamAfterSignup, visible }
+        function navToSignup() {
+            router.push('signup');
+        }
+
+        return {emailStr, pwdStr, mainStyleObj, textStyleObj, logoStyleObj, loginButtStyleObj, hoverOn, hoverOff, login, isParamAfterSignup, visible, navToSignup }
     }
 }
 </script>
@@ -225,10 +223,20 @@ i {
 
 Button > i {
     padding-top: 5px;
+    transition: 0.25s;
+}
+
+Button {
+    transition: 0.25s;
 }
 
 .p-button-rounded {
     background-color: rgba(234,234,234,1);
+}
+
+#signup-link {
+    color: black;
+    font-size: 0.6em;
 }
 
 * {
