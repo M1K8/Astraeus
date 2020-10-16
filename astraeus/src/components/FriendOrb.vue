@@ -51,18 +51,31 @@ export default defineComponent({
     directives: {
     'tooltip': Tooltip
     },
+    emits: {
+        'ctx-menu-clicked' : (id : string) => {
+            if (id) {
+                return true;
+            } else {
+                return false;
+            }
+        }
+    },
     methods : {
         onRightClick(event: any) {
             // emit event to parent that we are open, which will them emit event to close
             // receives event, foreach child in friendsbar, if this.$refs.menu, this.$refs.menu.hide()
             const refs : any = this.$refs; 
             const menu : any = refs.menu;
-            menu.show(event);    
+            menu.show(event);   
+            this.$emit("ctx-menu-clicked", this.uid); 
         },
         hideMenu() {
+            console.log("called!")
             const refs : any = this.$refs; 
             const menu : any = refs.menu;
-            menu.hide();    
+            if (menu) {
+                menu.hide();   
+            } 
         }    
     },
     data() {

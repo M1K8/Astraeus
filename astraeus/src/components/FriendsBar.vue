@@ -2,7 +2,7 @@
     <text class="bar-label"> Friends </text>
     <div class="bar-wrapper">
         <div class="box">
-            <FriendOrb v-for='friend in friends' :key="friend.uid" :friend="friend" />
+            <FriendOrb v-for='friend in friends' :key="friend.uid" :friend="friend" :ref="'friend_' + friend.uid" @ctx-menu-clicked="hideMenu"/>
             <AddFriendOrb />
         </div>
 
@@ -24,16 +24,31 @@ export default defineComponent({
 
     setup() {
       const f1 = reactive(new User("testA", "1"));
-      const f2 = reactive(new User("test", "2"));
+      const f2 = reactive(new User("testB", "2"));
       const store = useStore();
 
       const friendsUID = store.getters.getUser.friends;
       const friends = [f1, f2]//db.ref
 
+      return { friends, f1 }
+    },
+    methods: {
+      hideMenu(thisID: string) {
+        const friendRefs : any = this.$refs;
+        const excludeStr = "friend_" + thisID;
+        const keys = Object.keys(friendRefs)
+
+        const arrayedRefs = keys.map( (key) => {
+          return [key, friendRefs[key]]
+        })
 
 
+        const newRef = arrayedRefs.filter( key => key[0] != excludeStr)
 
-      return { friends }
+        console.log(newRef)
+
+        newRef.forEach( (ref : any) => ref[1].hideMenu())
+      }
     }
 });
 </script>
