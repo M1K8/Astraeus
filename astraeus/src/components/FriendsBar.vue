@@ -2,7 +2,7 @@
     <text class="bar-label"> Friends </text>
     <div class="bar-wrapper">
         <div class="box">
-            <FriendOrb :friend="f1" />   
+            <FriendOrb v-for='friend in friends' :key="friend.uid" :friend="friend" />
             <AddFriendOrb />
         </div>
 
@@ -14,6 +14,8 @@ import Vue, { defineComponent, reactive } from 'vue'
 import FriendOrb from '@/components/FriendOrb.vue'
 import AddFriendOrb from '@/components/AddFriendOrb.vue'
 import { User } from '@/model/user';
+import { useStore } from 'vuex'
+import { db } from '../firebase'
 export default defineComponent({
     components : {
         FriendOrb,
@@ -21,9 +23,17 @@ export default defineComponent({
     },
 
     setup() {
-      const f1 = reactive(new User("test", "1"))
+      const f1 = reactive(new User("testA", "1"));
+      const f2 = reactive(new User("test", "2"));
+      const store = useStore();
 
-      return { f1 }
+      const friendsUID = store.getters.getUser.friends;
+      const friends = [f1, f2]//db.ref
+
+
+
+
+      return { friends }
     }
 });
 </script>

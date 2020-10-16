@@ -1,6 +1,5 @@
 <template>
   <div id="container">
-    <Password />
     <router-view />
   </div>
 </template>

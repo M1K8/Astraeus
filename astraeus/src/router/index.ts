@@ -37,7 +37,7 @@ const routes: Array<RouteRecordRaw> = [
         path: "/activity",
         name: "Activity",
         props: true,
-        meta: { requiresAuth: true},
+        //meta: { requiresAuth: true},
         component: () => 
           import(/* webpackChunkName: "Activity" */ "../views/children/Activity.vue")
       }

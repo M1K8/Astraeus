@@ -1,5 +1,8 @@
 <template>
-    <body> 
+    <body>
+        <Dialog header="Error!" v-model:visible="errorVisible">
+            {{ errorMessage }}
+        </Dialog> 
         <form id="main-login" :style="mainStyleObj" @mouseover="hoverOn" @mouseleave="hoverOff">
             <div id="logo" :style="logoStyleObj"> <img src='@/assets/m1k.png'/> </div>
 
@@ -20,7 +23,7 @@
 
             <div id="text-box" :style="textStyleObj">
                 <span class="p-float-label ">
-                    <InputText id="username" type="text" v-model="uNameStr" :class="{ 'p-invalid' : false} "/>
+                    <InputText id="username" type="text" v-model="uNameStr" :class="{ 'p-invalid' : false}" v-tooltip="'Username must be between 4 and 12 characters'" />
                     <label v-if="visible" for="username">Username</label>
                     <div v-if="false">
                         <div v-for="(error, index) of $v.$errors"
@@ -34,8 +37,7 @@
             </div>
   
             <div class="text-box" id="pwbox" :style="textStyleObj">
-                <!-- THIS ONLY WORKS BECAUSE I CHANGE PASSWORD.VUE
-                and the css because its fucking shit !-->
+                <!-- THIS ONLY WORKS BECAUSE I CHANGED PASSWORD.VUE + css !-->
                 <span class="p-float-label ">
                     <Password id="password" v-model="pwdStr"/>
                     <label v-if="visible" for="password">Password</label>
@@ -57,7 +59,7 @@
                 </span>
             </div>
 
-             <Button v-if="visible" @click="signup" id="signup" :style="loginButtStyleObj" class="p-button-success p-button-rounded p-button-raised p-button-lg">
+             <Button :disabled='isDisabled'  v-if="visible" @click="signup" id="signup" :style="loginButtStyleObj" class="p-button-success p-button-rounded p-button-raised p-button-lg">
                  <p >Signup</p>
              </Button>
 
@@ -71,23 +73,35 @@ import Vue, { computed, onMounted, reactive, ref } from 'vue'
 import InputText from 'primevue/inputtext'
 import Button from 'primevue/button';
 import Password from 'primevue/password'
+import Dialog from 'primevue/dialog'
+import Tooltip from 'primevue/tooltip'
 import { db, auth } from '../../firebase'
 import { useRouter } from 'vue-router'
-import { useStore } from 'vuex'
 export default {
     components : {
         InputText,
         Button,
-        Password
+        Password,
+        Dialog
+    },
+    directives: {
+        'tooltip' : Tooltip
     },
     setup() {
         const uNameStr     = ref("");
         const pwdStr       = ref("");
         const pwdConfStr   = ref("");
         const emailStr     = ref("");
+        const errorMessage = ref("");
         const visible      = ref(false);
+        const errorVisible = ref(false);
         const router       = useRouter();
-        const store        = useStore();
+        const isDisabled   = computed( () => {
+            return (emailStr.value.trim().length === 0) 
+            || (pwdStr.value.trim().length === 0)
+            || (pwdConfStr.value.trim().length === 0)
+            || (uNameStr.value.trim().length === 0 || uNameStr.value.length < 4 || uNameStr.value.length > 16);
+        })
 
         const mainStyleObj = reactive( {
             opacity: 0.45,
@@ -148,26 +162,39 @@ export default {
         } 
 
         async function signup() {
-            store.dispatch("setSignup", true);
+            const emailRegex = /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
 
             if (pwdStr.value != pwdConfStr.value) {
-                alert("Passwords do not match")
+                errorMessage.value = "Passwords do not match";
                 pwdConfStr.value = "";
+                errorVisible.value = true;
+            } else if(!emailStr.value.match(emailRegex)) {
+                errorMessage.value ="Email is invalid";
+                emailStr.value = "";      
+                errorVisible.value = true;
+            } else if(pwdStr.value.length < 8) {
+                errorMessage.value ="Password is too short";
+                pwdStr.value = "";
+                pwdConfStr.value = "";        
+                errorVisible.value = true;      
             } else {
                 const user = await auth.createUserWithEmailAndPassword(emailStr.value, pwdStr.value).catch( error => {
                     const errorCode = error.code;
                     const errorMessage = error.message;
                     switch (errorCode) {
                         case 'auth/email-already-in-use':
-                            alert(errorMessage);
+                            errorMessage.value = errorMessage;
                             break;
                         default:
-                             alert(errorCode.message);
+                             errorMessage.value = errorCode.message;
                         }
-                    emailStr.value = "";
-                    pwdStr.value = "";
-                    pwdConfStr.value = "";
-                })
+
+                        errorVisible.value = true;
+                        emailStr.value = "";
+                        pwdStr.value = "";
+                        uNameStr.value = "";
+                        pwdConfStr.value = "";
+                    })
                 auth.signOut();
 
                 if (user) {
@@ -182,17 +209,14 @@ export default {
 
                     router.push( {name: 'Login', query: {signup: "true"}});
                 }
-
-                store.dispatch("setSignup", false);
             }
         }
-
 
         function navToLogin( ) {
             router.push('login');
         }
 
-        return {uNameStr, pwdStr, emailStr, pwdConfStr, mainStyleObj, textStyleObj, logoStyleObj, loginButtStyleObj, hoverOn, hoverOff, signup, visible, navToLogin}
+        return {uNameStr, pwdStr, emailStr, pwdConfStr, mainStyleObj, textStyleObj, logoStyleObj, loginButtStyleObj, hoverOn, hoverOff, signup, visible, navToLogin, errorMessage, errorVisible, isDisabled}
     }
 }
 </script>

@@ -5,16 +5,14 @@ import { db, auth } from '../firebase'
 type State = {
   user : {},
   uid : string | null,
-  unsubscribeAuthObserver : any,
-  signup: boolean
+  unsubscribeAuthObserver : any
 }
 
 export default createStore({
   state: {
       user: {},
       uid : null,
-      unsubscribeAuthObserver : null,
-      signup : false
+      unsubscribeAuthObserver : null
   },
 
   mutations: {
@@ -23,9 +21,6 @@ export default createStore({
     },
     SET_UNSUB(state : State, unsub : any) {
       state.unsubscribeAuthObserver = unsub;
-    },
-    SET_SIGNUP(state: State, isSignup: boolean) {
-      state.signup = isSignup
     },
     ...vuexfireMutations,
 
@@ -87,15 +82,14 @@ export default createStore({
   },
 
   getters: {
-    getUid: (state: State) => {
-      return state.uid;
+    getUid: ({uid}) => {
+      return uid;
     },
     getState: (state: State) => {
       return state;
     },
-    getSignup: (state: State) => {
-      return state.signup;
+    getUser: ({user}) => {
+      return user;
     }
-
   }
 });

@@ -1,5 +1,6 @@
 <template>
     <ContextMenu ref="menu" :model="items" />
+   
     <router-link class="friend-orb" :to="{
       name: 'Friend',
       params : { slug: uid }
@@ -13,6 +14,7 @@
                 <div class="overlay orb" :class="{'avatar-hover': false}"> <img :src='getStatusOrb()' /> </div>
         </div>
     </router-link>
+    
 </template>
 
 <script lang="ts">
@@ -51,17 +53,28 @@ export default defineComponent({
     },
     methods : {
         onRightClick(event: any) {
+            // emit event to parent that we are open, which will them emit event to close
+            // receives event, foreach child in friendsbar, if this.$refs.menu, this.$refs.menu.hide()
             const refs : any = this.$refs; 
             const menu : any = refs.menu;
-            menu.show(event);
-            //state.isOpen(menu)
-            // -> openMenu.close()
-            // -> openMenu = menu
-            //set state ref so only one can be shown at a time
-        }
+            menu.show(event);    
+        },
+        hideMenu() {
+            const refs : any = this.$refs; 
+            const menu : any = refs.menu;
+            menu.hide();    
+        }    
     },
     data() {
-        return {items: [
+        return {
+            lastMenu: {
+                menu : {
+                    hide() {
+                        console.log("hiding..")
+                    } //interface?
+                }
+            },
+            items: [
             {
                 label:'New',
                 icon:'pi pi-fw pi-plus',
