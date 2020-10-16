@@ -10,7 +10,7 @@
 </template>
 
 <script lang="ts">
-import Vue, { defineComponent, reactive } from 'vue'
+import Vue, { defineComponent, reactive, ref } from 'vue'
 import FriendOrb from '@/components/FriendOrb.vue'
 import AddFriendOrb from '@/components/AddFriendOrb.vue'
 import { User } from '@/model/user';
@@ -27,13 +27,18 @@ export default defineComponent({
       const f2 = reactive(new User("testB", "2"));
       const store = useStore();
 
+      const lastMenuID = ref("-1")
+
       const friendsUID = store.getters.getUser.friends;
       const friends = [f1, f2]//db.ref
 
-      return { friends, f1 }
+      return { friends, lastMenuID }
     },
     methods: {
       hideMenu(thisID: string) {
+        if (this.lastMenuID == thisID) {
+          return;
+        }
         const friendRefs : any = this.$refs;
         const excludeStr = "friend_" + thisID;
         const keys = Object.keys(friendRefs)
@@ -42,12 +47,11 @@ export default defineComponent({
           return [key, friendRefs[key]]
         })
 
-
         const newRef = arrayedRefs.filter( key => key[0] != excludeStr)
 
-        console.log(newRef)
+        newRef.forEach( (ref : any) => ref[1].hideMenu());
 
-        newRef.forEach( (ref : any) => ref[1].hideMenu())
+        this.lastMenuID = thisID;
       }
     }
 });
