@@ -56,12 +56,12 @@ export default createStore({
         const unsub = auth.onAuthStateChanged( async (user) => {
           if (user) {
 
-            //if (!user.emailVerified) { //save for adding friends etc, prune unverified accounts after 31 days
-            //  if (!getters.getSignup) {
-            //      alert("Unable to sign in - email not verified!");
-            //  }
-            //  resolve(null)
-            //}
+            if (!user.emailVerified) { 
+              if (!getters.getSignup) {
+                  alert("Unable to sign in - email not verified!");
+              }
+              resolve(null)
+            }
               console.log("Auth logged in")
               await dispatch('setUID',user.uid);
    
