@@ -11,7 +11,7 @@
     >
         <div class='avatar-container' @contextmenu="onRightClick">
                 <img src='@/assets/m1k.png' class="avatar"/>
-                <div class="overlay orb" :class="{'avatar-hover': false}"> <img :src='getStatusOrb()' /> </div>
+                <div class="overlay orb" :class="{'avatar-hover': false}"> <img :src='getStatusOrb' /> </div>
         </div>
     </router-link>
     
@@ -66,8 +66,8 @@ export default defineComponent({
             // receives event, foreach child in friendsbar, if this.$refs.menu, this.$refs.menu.hide()
             const refs : any = this.$refs; 
             const menu : any = refs.menu;
-            menu.show(event);   
             this.$emit("ctx-menu-clicked", this.uid); 
+            menu.show(event);   
         },
         hideMenu() {
             console.log("called!")

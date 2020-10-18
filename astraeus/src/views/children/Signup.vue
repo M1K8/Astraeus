@@ -75,7 +75,7 @@ import Button from 'primevue/button';
 import Password from 'primevue/password'
 import Dialog from 'primevue/dialog'
 import Tooltip from 'primevue/tooltip'
-import { db, auth } from '../../firebase'
+import { db, auth, functions } from '../../firebase'
 import { useRouter } from 'vue-router'
 export default {
     components : {
@@ -100,7 +100,7 @@ export default {
             return (emailStr.value.trim().length === 0) 
             || (pwdStr.value.trim().length === 0)
             || (pwdConfStr.value.trim().length === 0)
-            || (uNameStr.value.trim().length === 0 || uNameStr.value.length < 4 || uNameStr.value.length > 16);
+            || (uNameStr.value.trim().length === 0 || uNameStr.value.length < 3 || uNameStr.value.length > 16);
         })
 
         const mainStyleObj = reactive( {
@@ -147,7 +147,6 @@ export default {
             logoStyleObj["padding-bottom"] = "50px";
             loginButtStyleObj["margin-top"] = "10px";
             visible.value = true;
-
         }
 
         function hoverOff() {
@@ -160,6 +159,7 @@ export default {
             loginButtStyleObj["margin-top"] = "20px";
             visible.value = false;
         } 
+
 
         async function signup() {
             const emailRegex = /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
@@ -178,37 +178,23 @@ export default {
                 pwdConfStr.value = "";        
                 errorVisible.value = true;      
             } else {
-                const user = await auth.createUserWithEmailAndPassword(emailStr.value, pwdStr.value).catch( error => {
-                    const errorCode = error.code;
-                    const errorMessage = error.message;
-                    switch (errorCode) {
-                        case 'auth/email-already-in-use':
-                            errorMessage.value = errorMessage;
-                            break;
-                        default:
-                             errorMessage.value = errorCode.message;
-                        }
+                const createUser = functions.httpsCallable("createUser");
 
-                        errorVisible.value = true;
-                        emailStr.value = "";
-                        pwdStr.value = "";
-                        uNameStr.value = "";
-                        pwdConfStr.value = "";
-                    })
-                auth.signOut();
+                const t = await createUser({username: uNameStr.value, email: emailStr.value, password: pwdStr.value});
 
-                if (user) {
-                    db.ref("users").child(user.user!.uid).set( {
-                        name: uNameStr.value + "#0000",
-                        email: emailStr.value
-                    })
+                console.log(t.data);
 
-                    db.ref("online").child(user.user!.uid).set(1);
-
-                    await user.user!.sendEmailVerification();
-
+                if (t.data.error) {
+                    errorMessage.value = t.data.error;
+                    errorVisible.value = true;
+                    emailStr.value = "";
+                    pwdStr.value = "";
+                    uNameStr.value = "";
+                    pwdConfStr.value = "";
+                } else {
                     router.push( {name: 'Login', query: {signup: "true"}});
                 }
+
             }
         }
 
