@@ -26,14 +26,6 @@ const routes: Array<RouteRecordRaw> = [
           import(/* webpackChunkName: "FriendView" */ "../views/children/FriendView.vue")
       },
       {
-        path: "/add",
-        name: "AddFriend",
-        props: true,
-        meta: { requiresAuth: true},
-        component: () => 
-          import(/* webpackChunkName: "AddFriend" */ "../views/children/AddFriend.vue")
-      },
-      {
         path: "/activity",
         name: "Activity",
         props: true,
@@ -59,6 +51,7 @@ const routes: Array<RouteRecordRaw> = [
         path: "/login",
         name: "Login",
         meta: { noobOnly: true },
+        props: {login : false },
         component: () =>
           import(/* webpackChunkName: "Login" */ "../views/children/Login.vue")
       },

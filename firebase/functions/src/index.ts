@@ -1,8 +1,7 @@
 import * as functions from 'firebase-functions';
 import * as admin from 'firebase-admin'
 import * as nodemailer from 'nodemailer'
-import { smtpConfig } from './mailopts'
-
+import { smtpConfig } from './mailOpts'
 
 const mailer = nodemailer.createTransport(smtpConfig);
 
@@ -23,6 +22,10 @@ export const createUser = functions.https.onCall(async (data, _) => {
     const email : string = data.email;
     const password : string = data.password;
     const username : string = data.username;
+    const db = admin.database();
+    
+    let name = username + "_" + generateRandomUserNumber();
+    let doesExist = true; //seed for first run to check
 
     let retData : any = null;
 
@@ -32,7 +35,7 @@ export const createUser = functions.https.onCall(async (data, _) => {
         email: email,
         emailVerified: false,
         password: password,
-        displayName: username,
+        displayName: name,
         disabled: false
     })
     .catch(function (error) {
@@ -43,25 +46,11 @@ export const createUser = functions.https.onCall(async (data, _) => {
     if (userRecord) {
         functions.logger.info(userRecord);
 
-        const db = admin.database();
-        let name = username + "_" + generateRandomUserNumber();
-        let doesExist = true; //seed for first run to check
-        //in the event this string exists...
-        while (doesExist) {
-            await db.ref("usernames").child(name).once( "value", snapshot => {
-                    if (snapshot.exists()) {
-                        doesExist = true;
-                        name = username + "_" + generateRandomUserNumber();
-                    }
-                    doesExist = false;
-                });
-            }
-
         const emailVerifyLink = await admin.auth().generateEmailVerificationLink(email);
 
         if (emailVerifyLink) {
             const mailOptions = {
-                from: 'Your Account Name <yourgmailaccount@gmail.com>', // Something like: Jane Doe <janedoe@gmail.com>
+                from: 'tMup Verify <verify@m1k.me>', // Something like: Jane Doe <janedoe@gmail.com>
                 to: email,
                 subject: 'Verify you tMup account!', // email subject
                 html: `<a href=${emailVerifyLink} style="font-size: 16px;">Click here to verify</a>
@@ -69,6 +58,7 @@ export const createUser = functions.https.onCall(async (data, _) => {
             };
             
             const sentEmail = await mailer.sendMail(mailOptions);
+
             if (!sentEmail) {
                 await admin.auth().deleteUser(userRecord.uid);
                 return { error: `Unable to create account - could not send verification email`};
@@ -77,17 +67,32 @@ export const createUser = functions.https.onCall(async (data, _) => {
             await admin.auth().deleteUser(userRecord.uid);
             return { error: "Unable to create account - could not generate verification email"}
         }
-        // send this using 1and1 email ting
-        await db.ref("users").child(userRecord.uid).set( {
-            name: name.replace('_', '#'),
-            email: email
+
+        await db.ref("users").child(userRecord.uid).transaction( function( x ) {
+            return {
+                name: name.replace('_', '#'),
+                email: email
+            }
         })
-        await db.ref("usernames").child(name).set( {
-            uid: userRecord.uid
-        })
+
+
+        //see if username string is unique
+        while (doesExist) {
+            await db.ref("usernames").child(name).transaction( function(currentData) {
+                if (currentData !== null) {
+                    // username string (somehow) exists, reroll
+                    name = username + "_" + generateRandomUserNumber();
+                    return;
+                } else {
+                    doesExist = false;
+                    return { username : name.replace('_', '#') , uid : userRecord.uid}
+                }
+            });
+        }
+
         await db.ref("online").child(userRecord.uid).set(0);
 
-        return { uid: userRecord.uid, message :"Successfully created new user: " + username + ", please verify your email" };
+        return { uid: userRecord.uid, message :"Successfully created new user: " + username };
     } else {
         return retData;
     }

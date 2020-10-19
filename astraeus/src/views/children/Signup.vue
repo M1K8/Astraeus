@@ -1,6 +1,6 @@
 <template>
     <body>
-        <Dialog header="Error!" v-model:visible="errorVisible">
+        <Dialog header="Error!" v-model:visible="errorVisible" modal=true>
             {{ errorMessage }}
         </Dialog> 
         <form id="main-login" :style="mainStyleObj" @mouseover="hoverOn" @mouseleave="hoverOff">

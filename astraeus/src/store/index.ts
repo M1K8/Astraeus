@@ -55,10 +55,10 @@ export default createStore({
         }
         const unsub = auth.onAuthStateChanged( async (user) => {
           if (user) {
-
             if (!user.emailVerified) { 
               if (!getters.getSignup) {
                   alert("Unable to sign in - email not verified!");
+                  auth.signOut();
               }
               resolve(null)
             }

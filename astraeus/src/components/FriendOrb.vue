@@ -1,6 +1,4 @@
-<template>
-    <ContextMenu ref="menu" :model="items" />
-   
+<template> 
     <router-link class="friend-orb" :to="{
       name: 'Friend',
       params : { slug: uid }
@@ -11,10 +9,10 @@
     >
         <div class='avatar-container' @contextmenu="onRightClick">
                 <img src='@/assets/m1k.png' class="avatar"/>
-                <div class="overlay orb" :class="{'avatar-hover': false}"> <img :src='getStatusOrb' /> </div>
+                <img class="overlay orb" :class="{'avatar-hover': isHover}" :src='getStatusOrb()' />
         </div>
     </router-link>
-    
+    <ContextMenu ref="menu" :model="items" />
 </template>
 
 <script lang="ts">
@@ -32,9 +30,9 @@ export default defineComponent({
         });
         function getStatusOrb() {
             if (props.friend!.isOnline) {
-                return require('@/assets/orbs/online.png')
+                return require('../assets/orbs/online.png')
             } else {
-                return require('@/assets/orbs/offline.png') 
+                return require('../assets/orbs/offline.png')
             }
         }
 
@@ -70,7 +68,6 @@ export default defineComponent({
             menu.show(event);   
         },
         hideMenu() {
-            console.log("called!")
             const refs : any = this.$refs; 
             const menu : any = refs.menu;
             if (menu) {
@@ -80,13 +77,6 @@ export default defineComponent({
     },
     data() {
         return {
-            lastMenu: {
-                menu : {
-                    hide() {
-                        console.log("hiding..")
-                    } //interface?
-                }
-            },
             items: [
             {
                 label:'New',
@@ -129,7 +119,7 @@ export default defineComponent({
     display: block;
 }
 .avatar-hover {
-        display: none;
+    display: none;
     }
 /* Container needed to position the overlay. Adjust the width as needed */
 .avatar-container {
@@ -141,13 +131,14 @@ export default defineComponent({
 /* The overlay effect - lays on top of the container and over the image */
 .overlay {
   position: absolute;
-  top: 25px;
-  left: 25px;
+  top: 26px;
+  left: 26px;
 }
 
 .orb{
     clip-path: circle(6px at center);
-    }
+
+}
 
 .p-tooltip-text {
     font-size: 0.8em;

@@ -1,7 +1,7 @@
 <template>
     <body> 
-        <Dialog header="Signup Successful!" v-model:visible="isParamAfterSignup">
-            Please confirm your account in the email sent to you.
+        <Dialog header="Error" v-model:visible="isDiaVisible" modal=true>
+            {{diaMessage}}
         </Dialog>
         <form @mouseover="hoverOn" @mouseleave="hoverOff" id="main-login" :style="mainStyleObj">
             <div id="logo" :style="logoStyleObj"> <img src='@/assets/m1k.png'/> </div>
@@ -65,6 +65,7 @@ export default {
         const emailStr = ref("");
         const pwdStr   = ref("");
         const visible  = ref(false);
+        const diaMessage = ref("");
 
         const route = useRoute();
         const router = useRouter()
@@ -106,7 +107,15 @@ export default {
             transition: "0.2s"
         })
 
-        const isParamAfterSignup = ref(route.query.signup)
+        const isDiaVisible = ref(false);
+
+        if (route.query.signup === 'true') {
+            diaMessage.value = "Please confirm your account via the verification email.";
+            isDiaVisible.value = true;
+        }
+
+        
+
 
         function hoverOn() {
             mainStyleObj.width= "400px";
@@ -116,7 +125,6 @@ export default {
             textStyleObj["padding-bottom"] = "30px";
             logoStyleObj["padding-bottom"] = "60px";
             visible.value = true;
-
         }
         function hoverOff() {
             mainStyleObj.width= "300px";
@@ -134,18 +142,21 @@ export default {
                 const errorMessage = error.message;
                 switch (errorCode) {
                     case 'auth/wrong-password':
-                        alert('Wrong password.');
+                        diaMessage.value ='Wrong password.';
                         pwdStr.value = "";
+                        isDiaVisible.value = true;
                         break;
                     case 'auth/user-not-found':
-                        alert('The user does not exist!')
+                        diaMessage.value = 'The user does not exist!';
                         emailStr.value = "";
                         pwdStr.value = "";
+                        isDiaVisible.value = true;
                         break;
                     default:
-                         alert(errorMessage);
+                         diaMessage.value = errorMessage;
                          emailStr.value = "";
                          pwdStr.value = "";
+                         isDiaVisible.value = true;
                     }
             });
 
@@ -157,7 +168,7 @@ export default {
             router.push('signup');
         }
 
-        return {emailStr, pwdStr, mainStyleObj, textStyleObj, logoStyleObj, loginButtStyleObj, hoverOn, hoverOff, login, isParamAfterSignup, visible, navToSignup }
+        return {emailStr, pwdStr, mainStyleObj, textStyleObj, logoStyleObj, loginButtStyleObj, hoverOn, hoverOff, login, isDiaVisible, visible, navToSignup, diaMessage }
     }
 }
 </script>
