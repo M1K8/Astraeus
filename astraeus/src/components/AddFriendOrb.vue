@@ -1,6 +1,6 @@
 <template>
 <teleport to="#modal-wrapper">
-    <Dialog modal=true header="Signup Successful!" v-model:visible="isModal">
+    <Dialog modal=true v-model:visible="isModal">
         <AddFriend />
     </Dialog>
 </teleport>
@@ -25,7 +25,6 @@ export default defineComponent({
     setup() {
         const isModal = ref(false);
         function openModal() {
-            console.log("Opening modal");
             if (!isModal.value) {
                 isModal.value = true;
             }

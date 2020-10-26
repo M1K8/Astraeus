@@ -7,7 +7,6 @@
 import Vue from 'vue'
 import { useRouter } from 'vue-router';
 import { useStore } from 'vuex'
-import password from 'primevue/password'
 import component from '*.vue';
 export default {
   setup() {

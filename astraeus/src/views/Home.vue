@@ -18,6 +18,7 @@ import Vue, { defineComponent } from 'vue'
 import FriendsBar from '@/components/FriendsBar.vue'
 import FlocksBar from '@/components/FlocksBar.vue'
 import TopRow from '@/components/TopRow.vue'
+import { useStore } from 'vuex'
 
 export default defineComponent({
   components : {
@@ -27,7 +28,11 @@ export default defineComponent({
       //ReccommendedGames,
       //RecentGames
 
-  }
+  },
+   setup() {
+     //init notifications
+
+   }
   });
 </script>
 

@@ -115,8 +115,6 @@ export default {
         }
 
         
-
-
         function hoverOn() {
             mainStyleObj.width= "400px";
             mainStyleObj.height = "550px";

@@ -13,7 +13,7 @@
 import Vue, { defineComponent, reactive, ref } from 'vue'
 import FriendOrb from '@/components/FriendOrb.vue'
 import AddFriendOrb from '@/components/AddFriendOrb.vue'
-import { User } from '@/model/user';
+import { User } from '../model/user';
 import { useStore } from 'vuex'
 import { db } from '../firebase'
 export default defineComponent({

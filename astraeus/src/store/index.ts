@@ -1,17 +1,39 @@
 import { createStore } from "vuex";
 import { vuexfireMutations, firebaseAction } from 'vuexfire'
+import { FBUser } from '@/model/FBUser'
 import { db, auth } from '../firebase'
 
 type State = {
-  user : {},
+  user : FBUser,
   uid : string | null,
+  notifications : number,
   unsubscribeAuthObserver : any
+}
+
+
+function filterForIncoming(userObj : object){
+  let numOfRequests = 0;
+  if (userObj) {
+    for (const [_, value] of Object.entries(userObj)) {
+        if (value.type === "INCOMING") {
+          ++numOfRequests;
+        }
+    }
+  }
+  return numOfRequests;
 }
 
 export default createStore({
   state: {
-      user: {},
+      user: {
+        email : "",
+        name : "",
+        pendingFriendRequests : {},
+        pendingFlockRequests : {},
+        pendingGameRequests : {}
+      },
       uid : null,
+      notifications : 0,
       unsubscribeAuthObserver : null
   },
 
@@ -21,6 +43,9 @@ export default createStore({
     },
     SET_UNSUB(state : State, unsub : any) {
       state.unsubscribeAuthObserver = unsub;
+    },
+    INC_NOTIS(state : State) {
+      state.notifications++;
     },
     ...vuexfireMutations,
 
@@ -43,6 +68,8 @@ export default createStore({
     },
 
     setSignup: ({commit}, isSignup) => commit("SET_SIGNUP", isSignup),
+
+    incrementNotis: ({commit}) => commit("INC_NOTIS"),
 
     signOut: async (ctx) =>  await auth.signOut(),
       //unbind user & unset auth will be handled by listener
@@ -85,11 +112,31 @@ export default createStore({
     getUid: ({uid}) => {
       return uid;
     },
+    getName: ({user}) => {
+      return user.name;
+    },
     getState: (state: State) => {
       return state;
     },
     getUser: ({user}) => {
       return user;
+    },
+    getNotis: ({notifications}) => {
+      return notifications;
+    },
+    getIncomingFriendRequests: ({user}) => {
+      return user.pendingFriendRequests;
+    },
+    getIncomingFlockRequests: ({user}) => {
+      return user.pendingFlockRequests;
+    },
+    getIncomingGameInvites: ({user}) => {
+      return user.pendingGameRequests;
+    },
+    getAllIncomingNotis: ({user}) => {
+      return filterForIncoming(user.pendingGameRequests) + 
+              filterForIncoming(user.pendingFlockRequests) +
+              filterForIncoming(user.pendingFriendRequests);
     }
   }
 });
