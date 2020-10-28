@@ -15,7 +15,6 @@ import Button from 'primevue/button'
 import {db} from '../firebase'
 import {useStore} from 'vuex'
 import {UsernameObject} from '@/model/usernameObject'
-import { v4 as uuidv4 } from 'uuid'
 export default {
     components: {
         InputText,
@@ -42,6 +41,8 @@ export default {
                         if (me.pendingFriendRequests[targetUid]) {
                             alert("You already have a request with this user!");
                         }
+                    } else if (me.friends[targetUid]) {
+                        alert("You already have this user as a friend!");
                     } else {
                         //lets add this friend:
                         const myUid = store.getters.getUid;
@@ -71,10 +72,6 @@ export default {
                             recipientName: user.username,
                             uid : uidRef.key
                         });
-
-                        //to remove:
-
-                        // db.ref.child(pendingRequests).child(otherUser).remove
                         // probably move to cloud function
                     }
                 }

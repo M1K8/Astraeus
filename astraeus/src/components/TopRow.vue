@@ -7,7 +7,7 @@
     <SettingsContainer/>
 
     <div v-if="notiCount > 0" class="p-badge p-badge-danger" id="noti" @click="visibleRight = true"> {{notiCount}}</div>
-    <div v-else class="p-badge p-badge-sucess" id="noti" @click="visibleRight"> </div>
+    <div v-else class="p-badge p-badge-sucess" id="noti" @click="visibleRight = true"> </div>
   
 
     <Sidebar v-model:visible="visibleRight" :baseZIndex="1000" position="right">

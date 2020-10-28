@@ -2,15 +2,14 @@
     <text class="bar-label"> Friends </text>
     <div class="bar-wrapper">
         <div class="box">
-            <FriendOrb v-for='friend in friends' :key="friend.uid" :friend="friend" :ref="'friend_' + friend.uid" @ctx-menu-clicked="hideMenu"/>
+            <FriendOrb v-for='friend in friends.arr' :key="friend.uid" :friend="friend" :ref="'friend_' + friend.uid" @ctx-menu-clicked="hideMenu"/>
             <AddFriendOrb />
         </div>
-
     </div>
 </template>
 
 <script lang="ts">
-import Vue, { defineComponent, reactive, ref } from 'vue'
+import Vue, { computed, defineComponent, reactive, ref, watchEffect, watch } from 'vue'
 import FriendOrb from '@/components/FriendOrb.vue'
 import AddFriendOrb from '@/components/AddFriendOrb.vue'
 import { User } from '../model/user';
@@ -23,14 +22,34 @@ export default defineComponent({
     },
 
     setup() {
-      const f1 = reactive(new User("testA", "1"));
-      const f2 = reactive(new User("testB", "2"));
       const store = useStore();
 
-      const lastMenuID = ref("-1")
+      const lastMenuID = ref("");
+      
+      const friendsListGetter = computed( () => store.getters.getFriends );
 
-      const friendsUID = store.getters.getUser.friends;
-      const friends = [f1, f2]//db.ref
+      const emptyArr : object[] = [];
+
+      const friends = reactive({
+        arr : emptyArr
+      });
+
+      watchEffect( async () => {
+        const fList = friendsListGetter.value; //track this dependency
+        const friendsArray : object[] = [];
+
+        for (let i = 0; i < fList.length; ++i) {
+            const str = fList[i][1].replace('#','_');
+            let friendObj = {};
+
+            await db.ref("usernames").child(str).once('value', snap => {
+              friendObj = snap.val();
+            });          
+            friendsArray.push(friendObj);
+        }
+        friends.arr = friendsArray;
+      });
+
 
       return { friends, lastMenuID }
     },

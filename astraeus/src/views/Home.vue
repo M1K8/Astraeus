@@ -8,7 +8,11 @@
       </div>
 
       <div id="main-view" class="p-d-none p-d-md-inline-flex" >
-          <router-view :key="$route.path" />
+        <router-view :key="$route.path" v-slot="{ Component }">
+          <keep-alive>
+            <component :is="Component" />
+          </keep-alive>
+        </router-view>
       </div>
   </div>
 </template>
@@ -28,11 +32,7 @@ export default defineComponent({
       //ReccommendedGames,
       //RecentGames
 
-  },
-   setup() {
-     //init notifications
-
-   }
+  }
   });
 </script>
 

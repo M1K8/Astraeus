@@ -1,5 +1,5 @@
 <template>
-    <router-link to="/about"><img src="@/assets/m1k.png" /></router-link> 
+    <router-link to="/activity"><img src="@/assets/m1k.png" /></router-link> 
 </template>
 
 <script lang="ts">

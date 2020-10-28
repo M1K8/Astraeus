@@ -29,7 +29,7 @@ export default defineComponent({
             return name.value.charAt(0)
         });
         function getStatusOrb() {
-            if (props.friend!.isOnline) {
+            if ("1 == 1".length > 1) {//props.friend!.isOnline) {
                 return require('../assets/orbs/online.png')
             } else {
                 return require('../assets/orbs/offline.png')
@@ -41,7 +41,7 @@ export default defineComponent({
         return { name, uid, initial, getStatusOrb, isHover }
     },
     props : {
-        friend : User
+        friend : Object
     },
     components : {
         ContextMenu

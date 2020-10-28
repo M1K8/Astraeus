@@ -7,7 +7,8 @@ type State = {
   user : FBUser,
   uid : string | null,
   notifications : number,
-  unsubscribeAuthObserver : any
+  unsubscribeAuthObserver : any,
+  isBound : boolean,
 }
 
 
@@ -30,10 +31,12 @@ export default createStore({
         name : "",
         pendingFriendRequests : {},
         pendingFlockRequests : {},
-        pendingGameRequests : {}
+        pendingGameRequests : {},
+        friends: {}
       },
       uid : null,
       notifications : 0,
+      isBound : false,
       unsubscribeAuthObserver : null
   },
 
@@ -47,17 +50,24 @@ export default createStore({
     INC_NOTIS(state : State) {
       state.notifications++;
     },
+    SET_BOUND(state: State, res : boolean) {
+      state.isBound = res;
+    },
     ...vuexfireMutations,
 
   },
   actions: {
-    bindUser: firebaseAction( ({ getters, bindFirebaseRef }) => {
-      const uid = getters.getUid;
-      console.log("user bound")
-      return bindFirebaseRef('user', db.ref(`users/${uid}`))
+    bindUser: firebaseAction( ({ commit, getters, bindFirebaseRef }) => {
+      if (!getters.getBound) {
+        const uid = getters.getUid;
+        console.log("user bound")
+        commit("SET_BOUND", true);
+        return bindFirebaseRef('user', db.ref(`users/${uid}`))
+      }
     }),
 
-    unbindUser: firebaseAction( ({ unbindFirebaseRef }) => {
+    unbindUser: firebaseAction( ({ commit, unbindFirebaseRef }) => {
+      commit("SET_BOUND", false);
       unbindFirebaseRef('user')
       console.log("user unbound")
     }),
@@ -71,7 +81,7 @@ export default createStore({
 
     incrementNotis: ({commit}) => commit("INC_NOTIS"),
 
-    signOut: async (ctx) =>  await auth.signOut(),
+    signOut: async (_) =>  await auth.signOut(),
       //unbind user & unset auth will be handled by listener
 
     initAuth: ( {dispatch, commit, getters, state} ) => {
@@ -109,11 +119,21 @@ export default createStore({
   },
 
   getters: {
+    getBound: ({isBound}) => {
+      return isBound;
+    },
     getUid: ({uid}) => {
       return uid;
     },
     getName: ({user}) => {
       return user.name;
+    },
+    getFriends: ({user}) => {
+      if (user.friends) {
+        return Object.entries(user.friends);
+      } else {
+        return [];
+      }
     },
     getState: (state: State) => {
       return state;
