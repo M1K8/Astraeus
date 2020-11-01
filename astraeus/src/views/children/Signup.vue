@@ -93,7 +93,7 @@ export default {
         const pwdConfStr   = ref("");
         const emailStr     = ref("");
         const errorMessage = ref("");
-        const visible      = ref(false);
+        const visible      = ref(true);
         const errorVisible = ref(false);
         const router       = useRouter();
         const isDisabled   = computed( () => {
@@ -104,15 +104,15 @@ export default {
         })
 
         const mainStyleObj = reactive( {
-            opacity: 0.45,
+            opacity: 0.75,
             transition: "0.2s",
-            "border-radius": "40px",
+            "border-radius": "35px",
             background: "#eaeaea",
             display: "flex",
             "flex-direction": "column",
             padding: "50px",
-            width: "300px",
-            height: "500px",
+            width: "450px",
+            height: "650px",
             position: "absolute",
             top:0,
             bottom: 0,
@@ -123,13 +123,13 @@ export default {
         })
 
         const textStyleObj = reactive({
-            "padding-bottom": "20px",
+            "padding-bottom": "40px",
             background: "inherit",
             transition: "0.2s"
         })
 
         const logoStyleObj = reactive({
-            "padding-bottom" : "10px",
+            "padding-bottom" : "50px",
             transition: "0.2s"
         })
 
@@ -177,23 +177,28 @@ export default {
                 pwdStr.value = "";
                 pwdConfStr.value = "";        
                 errorVisible.value = true;      
+            } 
+            else if (uNameStr.value.includes("£" ) || uNameStr.value.includes("#")) {
+                errorMessage.value ="Username contains invalid characters.";
+                uNameStr.value = "";   
+                errorVisible.value = true;      
             } else {
-                const createUser = functions.httpsCallable("createUser");
+            const createUser = functions.httpsCallable("createUser");
 
-                const t = await createUser({username: uNameStr.value, email: emailStr.value, password: pwdStr.value});
+            const t = await createUser({username: uNameStr.value, email: emailStr.value, password: pwdStr.value});
 
-                console.log(t.data);
+            console.log(t.data);
 
-                if (t.data.error) {
-                    errorMessage.value = t.data.error;
-                    errorVisible.value = true;
-                    emailStr.value = "";
-                    pwdStr.value = "";
-                    uNameStr.value = "";
-                    pwdConfStr.value = "";
-                } else {
-                    router.push( {name: 'Login', query: {signup: "true"}});
-                }
+            if (t.data.error) {
+                errorMessage.value = t.data.error;
+                errorVisible.value = true;
+                emailStr.value = "";
+                pwdStr.value = "";
+                uNameStr.value = "";
+                pwdConfStr.value = "";
+            } else {
+                router.push( {name: 'Login', query: {signup: "true"}});
+            }
 
             }
         }

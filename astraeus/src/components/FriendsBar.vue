@@ -2,7 +2,7 @@
     <text class="bar-label"> Friends </text>
     <div class="bar-wrapper">
         <div class="box">
-            <FriendOrb v-for='friend in friends.arr' :key="friend.uid" :friend="friend" :ref="'friend_' + friend.uid" @ctx-menu-clicked="hideMenu"/>
+            <FriendOrb v-for='friend in friends.arr' :key="friend.uid" :friend="friend" :ref="'friend_' + friend.uid" @ctx-menu-clicked="hideMenu" @remove-friend="removeFriend"/>
             <AddFriendOrb />
         </div>
     </div>
@@ -14,7 +14,8 @@ import FriendOrb from '@/components/FriendOrb.vue'
 import AddFriendOrb from '@/components/AddFriendOrb.vue'
 import { User } from '../model/user';
 import { useStore } from 'vuex'
-import { db } from '../firebase'
+import { db, functions } from '../firebase'
+import { hashToPound } from '@/util/stringFmt'
 export default defineComponent({
     components : {
         FriendOrb,
@@ -39,7 +40,9 @@ export default defineComponent({
         const friendsArray : object[] = [];
 
         for (let i = 0; i < fList.length; ++i) {
-            const str = fList[i][1].replace('#','_');
+            // get the normalised username of the friend, to access their "public"
+            // db record
+            const str = hashToPound(fList[i][1]);
             let friendObj = {};
 
             await db.ref("usernames").child(str).once('value', snap => {
@@ -50,8 +53,20 @@ export default defineComponent({
         friends.arr = friendsArray;
       });
 
+      async function removeFriend(friend : User){
+        const myUid = store.getters.getUid;
+        const myName = store.getters.getName;
+        const removeFriendFB = functions.httpsCallable("removeFriend");
+        await removeFriendFB({
+          senderName: myName,
+          senderUID: myUid,
+          recipName: friend.username,
+          recipUID: friend.uid
+        })
+      }
 
-      return { friends, lastMenuID }
+
+      return { friends, lastMenuID, removeFriend }
     },
     methods: {
       hideMenu(thisID: string) {

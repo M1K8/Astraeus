@@ -1,6 +1,6 @@
 export interface FBUser {
     email : string;
-    name : string;
+    username : string;
     pendingFriendRequests : object;
     pendingGameRequests : object;
     pendingFlockRequests : object;

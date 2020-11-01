@@ -9,32 +9,48 @@
     >
         <div class='avatar-container' @contextmenu="onRightClick">
                 <img src='@/assets/m1k.png' class="avatar"/>
-                <img class="overlay orb" :class="{'avatar-hover': isHover}" :src='getStatusOrb()' />
+                <img class="overlay orb" :class="{'avatar-hover': isHover}" :src='getStatusOrb' />
         </div>
     </router-link>
     <ContextMenu ref="menu" :model="items" />
 </template>
 
 <script lang="ts">
-import Vue, { defineComponent, ref, computed, onMounted } from 'vue'
+import Vue, { defineComponent, ref, computed, onMounted, watchEffect, watch } from 'vue'
 import ContextMenu from 'primevue/contextmenu';
 import Tooltip from 'primevue/tooltip';
+import { db } from '@/firebase';
+import { hashToPound } from '@/util/stringFmt';
 import { User } from '@/model/user';
 
 export default defineComponent({
     setup(props) {
         const name = ref(props.friend!.username)
         const uid = ref(props.friend!.uid)
+        const online = ref(0);
+
+        const friendRef = db.ref("usernames").child(hashToPound(name.value));
+
         const initial = computed (() => {
             return name.value.charAt(0)
         });
-        function getStatusOrb() {
-            if ("1 == 1".length > 1) {//props.friend!.isOnline) {
+
+        const getStatusOrb = computed(() => {
+            if (online.value === 1) {
                 return require('../assets/orbs/online.png')
             } else {
                 return require('../assets/orbs/offline.png')
             }
-        }
+        })
+
+        //get an up to date online status
+        watchEffect( () => {
+            friendRef.child("online").on('value', snap => {
+                if (snap.exists()){
+                    online.value = snap.val();
+                }
+            });
+        });
 
         const isHover = ref(false)
 
@@ -56,6 +72,13 @@ export default defineComponent({
             } else {
                 return false;
             }
+        },
+        'remove-friend' : (id : string) => {
+            if (id) {
+                return true;
+            } else {
+                return false;
+            }
         }
     },
     methods : {
@@ -72,43 +95,21 @@ export default defineComponent({
             const menu : any = refs.menu;
             if (menu) {
                 menu.hide();   
-            } 
-        }    
+            }
+        }
     },
     data() {
         return {
             items: [
             {
-                label:'New',
+                label:'Remove Friend',
                 icon:'pi pi-fw pi-plus',
-                items:[
-                {
-                    label:'Bookmark',
-                    icon:'pi pi-fw pi-bookmark',
-                    command: (event : any ) => {
-                        console.log(event.item)
-                    }
-                },
-                {
-                    label:'Video',
-                    icon:'pi pi-fw pi-video'
-                },
-
-                ]
-                },
-                {
-                    label:'Delete',
-                    icon:'pi pi-fw pi-trash'
-                },
-                {
-                    separator:true
-                },
-                {
-                    label:'Export',
-                    icon:'pi pi-fw pi-external-link'
+                command: (event: any) => {
+                    this.$emit("remove-friend", this.friend!); 
                 }
+            }
             ]
-    }
+        }
     }
 });
 </script>

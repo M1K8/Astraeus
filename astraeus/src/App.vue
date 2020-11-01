@@ -6,7 +6,7 @@
 <script lang="ts">
 import Vue from 'vue'
 import { useRouter } from 'vue-router';
-import { useStore } from 'vuex'
+import { useStore } from 'vuex';
 import component from '*.vue';
 export default {
   setup() {
@@ -18,9 +18,20 @@ export default {
         if (to.matched.some(record => record.meta.requiresAuth)) {
           if (user) {
             console.log("yay");
-            next();
+            if (to.path.startsWith("/friend")) {
+              const friendStr = to.path.split("/")[2];
+              const friendsList: string[] = store.getters.getFriendsList;
+              
+              if(friendsList.includes(friendStr)){
+                next();
+              } else {
+                next('404');
+              }
+
+            } else {
+              next();
+            }
           } else {
-            // if !(exists(next)), next {404}
             console.log("nay")
             next({
               name: "Login"

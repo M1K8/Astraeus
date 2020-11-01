@@ -64,13 +64,13 @@ const routes: Array<RouteRecordRaw> = [
       }
     ]
   },
-  //{
-  //  path "/404",
-  //  alias: "*",
-  //  name: "404",
-  //  component: () =>
-  //    import(/* webpackChunkName: "404" */ "../views/NotFound.vue")
-  //}
+  {
+    path: "/:pathMatch(404)",
+    alias: '/:pathMatch(.*)*',
+    name: "404",
+    component: () =>
+      import(/* webpackChunkName: "404" */ "../views/About.vue")
+  }
  
 ];
 

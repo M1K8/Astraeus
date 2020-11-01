@@ -1,9 +1,9 @@
 <template>
-<span class="p-float-label p-input-icon-lef">
+<div class="p-float-label p-input-icon-left">
     <i class="pi pi-user" />
 	<InputText id="find-friend" type="text" v-model="value" />
 	<label for="find-friend">Find friend...</label>
-</span>
+</div>
 
 <Button label="Submit" @click="handleClick($event)"/>
 </template>
@@ -12,9 +12,10 @@
 import Vue, { ref } from 'vue'
 import InputText from 'primevue/inputtext'
 import Button from 'primevue/button'
-import {db} from '../firebase'
+import {db, functions} from '../firebase'
 import {useStore} from 'vuex'
 import {UsernameObject} from '@/model/usernameObject'
+import { hashToPound } from '@/util/stringFmt'
 export default {
     components: {
         InputText,
@@ -29,7 +30,7 @@ export default {
 
 
         function handleClick(event : any) {
-            const normalisedStr = value.value.replace('#', '_');
+            const normalisedStr = hashToPound(value.value); 
             db.ref("usernames").child(normalisedStr).once( "value", snapshot => {
                 if (!snapshot.exists()) {
                     alert("User not found");
@@ -37,48 +38,34 @@ export default {
                     const user = snapshot.val();
                     const targetUid = user.uid;
                     //check request doesnt already exist
-                    if ( me.pendingFriendRequests) {
+                    console.log(me)
+                    if ( me.pendingFriendRequests != undefined ) {
                         if (me.pendingFriendRequests[targetUid]) {
                             alert("You already have a request with this user!");
                         }
-                    } else if (me.friends[targetUid]) {
+                    } else if (me.friends != undefined && me.friends[targetUid]) {
                         alert("You already have this user as a friend!");
                     } else {
                         //lets add this friend:
                         const myUid = store.getters.getUid;
                         const myName = store.getters.getName;
-                        const now = Date.now();
+                        const addFriend = functions.httpsCallable("addFriend");
 
-                        const uidRef = db.ref("requests").push({
-                            sender: myUid,
-                            recipient: user.uid
+                        addFriend({
+                            senderUID : myUid,
+                            recipUID : targetUid,
+                            senderName: myName,
+                            recipName : user.username
+                        }).catch(function (error) {
+                            alert("Error adding friend, please try again: " + error);
+                        }).then( () => {
+                            alert("Friend added!");
+                            value.value = "";
                         })
-
-                        db.ref("users").child(myUid).child("pendingFriendRequests").child(user.uid).set( {
-                            type : "OUTGOING",
-                            target: user.uid,
-                            sent: now,
-                            senderName: myName,
-                            recipientName: user.username,
-                            uid : uidRef.key
-                        } );
-
-
-                        db.ref("users").child(user.uid).child("pendingFriendRequests").child(myUid).set( {
-                            type : "INCOMING",
-                            target: myUid,
-                            sent: now,
-                            senderName: myName,
-                            recipientName: user.username,
-                            uid : uidRef.key
-                        });
-                        // probably move to cloud function
                     }
                 }
             });
         }
-
-
         return {value, handleClick}
     }
 
@@ -86,5 +73,32 @@ export default {
 </script>
 
 <style lang="scss" scoped>
+*{
+    background: #1e1e1e;
+}
+
+i {
+    margin-left: 0px;
+    padding-right: 5px;
+    background-color: #1e1e1e;
+}
+
+label {
+    margin-left: 20px;
+    background-color : rgba(0,0,0,0);
+}
+
+button {
+    background-color: #3e3e3e;
+    border:none;
+    margin-left: 10px;
+    margin-right: -10px;
+    margin-bottom: 1px;
+}
+
+input {
+    background-color: #121212;
+}
+
 
 </style>

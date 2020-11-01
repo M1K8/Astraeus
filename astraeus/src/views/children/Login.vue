@@ -1,6 +1,6 @@
 <template>
     <body> 
-        <Dialog header="Error" v-model:visible="isDiaVisible" modal=true>
+        <Dialog header="" v-model:visible="isDiaVisible" modal=true>
             {{diaMessage}}
         </Dialog>
         <form @mouseover="hoverOn" @mouseleave="hoverOff" id="main-login" :style="mainStyleObj">
@@ -64,7 +64,7 @@ export default {
     setup() {
         const emailStr = ref("");
         const pwdStr   = ref("");
-        const visible  = ref(false);
+        const visible  = ref(true);
         const diaMessage = ref("");
 
         const route = useRoute();
@@ -72,15 +72,15 @@ export default {
         const store = useStore();
 
         const mainStyleObj = reactive( {
-            opacity: 0.45,
+            opacity: 0.75,
             transition: "0.2s",
-            "border-radius": "40px",
+            "border-radius": "35px",
             background: "#eaeaea",
             display: "flex",
             "flex-direction": "column",
             padding: "50px",
-            width: "300px",
-            height: "300px",
+            width: "400px",
+            height: "500px",
             position: "absolute",
             top:0,
             bottom: 0,
@@ -91,13 +91,13 @@ export default {
         })
 
         const textStyleObj = reactive({
-            "padding-bottom": "20px",
+            "padding-bottom": "30px",
             background: "inherit",
             transition: "0.2s"
         })
 
         const logoStyleObj = reactive({
-            "padding-bottom" : "20px",
+            "padding-bottom" : "60px",
             transition: "0.2s"
         })
 

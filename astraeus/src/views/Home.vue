@@ -18,7 +18,7 @@
 </template>
 
 <script lang="ts">
-import Vue, { defineComponent } from 'vue'
+import Vue, { defineComponent, ref } from 'vue'
 import FriendsBar from '@/components/FriendsBar.vue'
 import FlocksBar from '@/components/FlocksBar.vue'
 import TopRow from '@/components/TopRow.vue'

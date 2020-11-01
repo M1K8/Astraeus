@@ -2,6 +2,7 @@ import { createStore } from "vuex";
 import { vuexfireMutations, firebaseAction } from 'vuexfire'
 import { FBUser } from '@/model/FBUser'
 import { db, auth } from '../firebase'
+import { hashToPound } from '@/util/stringFmt';
 
 type State = {
   user : FBUser,
@@ -12,11 +13,12 @@ type State = {
 }
 
 
-function filterForIncoming(userObj : object){
+function filterForIncomingCount(userObj : object){
   let numOfRequests = 0;
   if (userObj) {
     for (const [_, value] of Object.entries(userObj)) {
         if (value.type === "INCOMING") {
+          console.log(value)
           ++numOfRequests;
         }
     }
@@ -24,11 +26,33 @@ function filterForIncoming(userObj : object){
   return numOfRequests;
 }
 
+function filterForIncoming(userObj : object){
+  const retObj = [];
+  if (userObj) {
+    for (const [_, value] of Object.entries(userObj)) {
+        if (value.type === "INCOMING") {
+          retObj.push(value);
+        }
+    }
+  }
+  return retObj;
+}
+
+//const onlineStatus = {
+//  state: 'online',
+//  last_changed: Date.now()
+//}
+//
+//const offlineStatus = {
+//  state: 'offline',
+//  last_changed: Date.now()
+//}
+
 export default createStore({
   state: {
       user: {
         email : "",
-        name : "",
+        username : "",
         pendingFriendRequests : {},
         pendingFlockRequests : {},
         pendingGameRequests : {},
@@ -60,7 +84,7 @@ export default createStore({
     bindUser: firebaseAction( ({ commit, getters, bindFirebaseRef }) => {
       if (!getters.getBound) {
         const uid = getters.getUid;
-        console.log("user bound")
+        console.log("user bound");
         commit("SET_BOUND", true);
         return bindFirebaseRef('user', db.ref(`users/${uid}`))
       }
@@ -68,13 +92,13 @@ export default createStore({
 
     unbindUser: firebaseAction( ({ commit, unbindFirebaseRef }) => {
       commit("SET_BOUND", false);
-      unbindFirebaseRef('user')
-      console.log("user unbound")
+      unbindFirebaseRef('user');
+      console.log("user unbound");
     }),
 
     setUID: ({commit}, uid) => {
-      commit("SET_UID",uid)
-      console.log("uid set to " + uid)
+      commit("SET_UID",uid);
+      console.log("uid set to " + uid);
     },
 
     setSignup: ({commit}, isSignup) => commit("SET_SIGNUP", isSignup),
@@ -87,27 +111,41 @@ export default createStore({
     initAuth: ( {dispatch, commit, getters, state} ) => {
       return new Promise( (resolve, reject) => {
         if (state.unsubscribeAuthObserver) {
-          console.log("unsub")
-          state.unsubscribeAuthObserver()
+          console.log("unsub");
+          state.unsubscribeAuthObserver();
         }
         const unsub = auth.onAuthStateChanged( async (user) => {
           if (user) {
             if (!user.emailVerified) { 
               if (!getters.getSignup) {
-                  alert("Unable to sign in - email not verified!");
+                  alert("Unable to proceed - email not verified!");
                   auth.signOut();
               }
               resolve(null)
             }
-              console.log("Auth logged in")
-              await dispatch('setUID',user.uid);
-   
-              await dispatch('bindUser');
+              if (!state.isBound) {
+                await dispatch('setUID',user.uid);
+                console.log("Logged in");
+     
+                await dispatch('bindUser');
+
+                const formattedUsr = hashToPound(state.user.username);
+
+                db.ref('.info/connected').on('value', snapshot => {
+                  if (snapshot.val() === false){
+                    return;
+                  }
+
+                  db.ref("usernames").child(formattedUsr).child("online").onDisconnect().set(0).then(() => {
+                    db.ref("usernames").child(formattedUsr).child("online").set(1);
+                  })
+                });
+              }
    
               resolve(user);
    
           } else {
-              console.log("Auth logged out")
+              console.log("Logged out")
               await dispatch('setUID', null);
               await dispatch('unbindUser');
               resolve(null)
@@ -126,11 +164,18 @@ export default createStore({
       return uid;
     },
     getName: ({user}) => {
-      return user.name;
+      return user.username;
     },
     getFriends: ({user}) => {
       if (user.friends) {
         return Object.entries(user.friends);
+      } else {
+        return [];
+      }
+    },
+    getFriendsList: ({user}) => {
+      if (user.friends) {
+        return Object.keys(user.friends);
       } else {
         return [];
       }
@@ -145,7 +190,7 @@ export default createStore({
       return notifications;
     },
     getIncomingFriendRequests: ({user}) => {
-      return user.pendingFriendRequests;
+      return filterForIncoming(user.pendingFriendRequests);
     },
     getIncomingFlockRequests: ({user}) => {
       return user.pendingFlockRequests;
@@ -154,9 +199,9 @@ export default createStore({
       return user.pendingGameRequests;
     },
     getAllIncomingNotis: ({user}) => {
-      return filterForIncoming(user.pendingGameRequests) + 
-              filterForIncoming(user.pendingFlockRequests) +
-              filterForIncoming(user.pendingFriendRequests);
+      return filterForIncomingCount(user.pendingGameRequests) + 
+              filterForIncomingCount(user.pendingFlockRequests) +
+              filterForIncomingCount(user.pendingFriendRequests);
     }
   }
 });

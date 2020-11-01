@@ -1,7 +1,7 @@
 <template>
 <teleport to="#modal-wrapper">
-    <Dialog modal=true v-model:visible="isModal">
-        <AddFriend />
+    <Dialog modal=true v-model:visible="isModal" header="Remember to include the '#'">
+        <AddFriend/>
     </Dialog>
 </teleport>
 
