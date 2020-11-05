@@ -2,7 +2,7 @@
     <text class="bar-label"> Friends </text>
     <div class="bar-wrapper">
         <div class="box">
-            <FriendOrb v-for='friend in friends.arr' :key="friend.uid" :friend="friend" :ref="'friend_' + friend.uid" @ctx-menu-clicked="hideMenu" @remove-friend="removeFriend"/>
+            <FriendOrb v-for='friend in friends.arr' :key="friend.uid" :friend="friend" :ref="'friend_' + friend.uid" @ctx-menu-clicked="hideMenu" @remove-friend="removeFriend" @invite-friend="inviteFriend"/>
             <AddFriendOrb />
         </div>
     </div>
@@ -12,10 +12,11 @@
 import Vue, { computed, defineComponent, reactive, ref, watchEffect, watch } from 'vue'
 import FriendOrb from '@/components/FriendOrb.vue'
 import AddFriendOrb from '@/components/AddFriendOrb.vue'
-import { User } from '../model/user';
+import { User } from '@/model/user';
 import { useStore } from 'vuex'
-import { db, functions } from '../firebase'
+import { db, functions } from '@/firebase'
 import { hashToPound } from '@/util/stringFmt'
+
 export default defineComponent({
     components : {
         FriendOrb,
@@ -53,7 +54,7 @@ export default defineComponent({
         friends.arr = friendsArray;
       });
 
-      async function removeFriend(friend : User){
+      async function removeFriend(friend : User) {
         const myUid = store.getters.getUid;
         const myName = store.getters.getName;
         const removeFriendFB = functions.httpsCallable("removeFriend");
@@ -65,8 +66,23 @@ export default defineComponent({
         })
       }
 
+      async function inviteFriend(blob: any) {
+        const myUid = store.getters.getUid;
+        const myName = store.getters.getName;
+        const friend = blob.friend;
+        const info   = blob.info;
+        const inviteFriendFB = functions.httpsCallable("inviteFriend");
+        await inviteFriendFB({
+          senderName: myName,
+          senderUID: myUid,
+          recipName: friend.username,
+          recipUID: friend.uid,
+          info: info
+        })
+      }
 
-      return { friends, lastMenuID, removeFriend }
+
+      return { friends, lastMenuID, removeFriend, inviteFriend }
     },
     methods: {
       hideMenu(thisID: string) {

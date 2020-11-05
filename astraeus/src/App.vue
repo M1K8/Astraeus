@@ -7,11 +7,16 @@
 import Vue from 'vue'
 import { useRouter } from 'vue-router';
 import { useStore } from 'vuex';
+import { messaging } from '@/firebase'
 import component from '*.vue';
 export default {
   setup() {
     const router = useRouter();
     const store = useStore();
+
+    messaging.onMessage( noti =>{
+      console.log('Message received. ', noti);
+    })
    
     router.beforeEach( (to, from, next) => {
       store.dispatch('initAuth').then( user => {

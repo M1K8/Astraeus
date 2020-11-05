@@ -85,20 +85,21 @@ export default defineComponent({
         onRightClick(event: any) {
             // emit event to parent that we are open, which will them emit event to close
             // receives event, foreach child in friendsbar, if this.$refs.menu, this.$refs.menu.hide()
-            const refs : any = this.$refs; 
-            const menu : any = refs.menu;
+            const menu : any = this.$refs.menu;
             this.$emit("ctx-menu-clicked", this.uid); 
             menu.show(event);   
         },
         hideMenu() {
-            const refs : any = this.$refs; 
-            const menu : any = refs.menu;
+            const menu : any = this.$refs.menu;
             if (menu) {
                 menu.hide();   
             }
         }
     },
     data() {
+        let gameName = "";
+        let location = "";
+        let serverURL = "";
         return {
             items: [
             {
@@ -107,7 +108,25 @@ export default defineComponent({
                 command: (event: any) => {
                     this.$emit("remove-friend", this.friend!); 
                 }
-            }
+            },
+              {
+                label:'Add friend to flock',
+                icon:'pi pi-fw pi-plus',
+                command: (event: any) => {
+                    console.log(this.friend!);
+                }
+            },
+              {
+                label:'Invite to game',
+                icon:'pi pi-fw pi-plus',
+                command: (event: any) => {
+                    this.$emit("invite-friend", {friend: this.friend!, info : {
+                        gameName: "gameName",
+                        location: "location",
+                        serverURL : "serverURL",
+                    }});
+                }
+            },
             ]
         }
     }

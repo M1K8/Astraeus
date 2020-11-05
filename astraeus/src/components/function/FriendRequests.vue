@@ -11,7 +11,7 @@
 
 import Vue, { computed, ref } from 'vue';
 import { useStore } from 'vuex';
-import {functions} from '../firebase'
+import {functions} from '@/firebase'
 import { User } from '@/model/user';
 
 export default {
@@ -28,7 +28,7 @@ export default {
             const acceptFriendFB = functions.httpsCallable("acceptFriend");
             console.log(friendRequest[1])
 
-            await acceptFriendFB({
+            const res = await acceptFriendFB({
                 senderUID : friendRequest[1].sender,
                 senderName: friendRequest[1].senderName,
                 recipUID: friendRequest[1].target,
@@ -36,7 +36,7 @@ export default {
                 key: friendRequest[1].uid
             })
 
-            alert("Friend accepted!");
+            console.log(res);
         }
 
         return { friendReqs, acceptFriend, isExists }

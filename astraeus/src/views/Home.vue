@@ -19,9 +19,9 @@
 
 <script lang="ts">
 import Vue, { defineComponent, ref } from 'vue'
-import FriendsBar from '@/components/FriendsBar.vue'
-import FlocksBar from '@/components/FlocksBar.vue'
-import TopRow from '@/components/TopRow.vue'
+import FriendsBar from '@/components/containers/FriendsBar.vue'
+import FlocksBar from '@/components/containers/FlocksBar.vue'
+import TopRow from '@/components/containers/TopRow.vue'
 import { useStore } from 'vuex'
 
 export default defineComponent({

@@ -6,47 +6,69 @@
 </div>
 
 <Button label="Submit" @click="handleClick($event)"/>
+
+<teleport to="#modal-wrapper">
+    <Dialog modal=true v-model:visible="isModal" header="Error">
+        {{message}}
+    </Dialog>
+</teleport>
+
 </template>
 
 <script lang="ts">
 import Vue, { ref } from 'vue'
 import InputText from 'primevue/inputtext'
 import Button from 'primevue/button'
-import {db, functions} from '../firebase'
+import {db, functions} from '@/firebase'
 import {useStore} from 'vuex'
 import {UsernameObject} from '@/model/usernameObject'
 import { hashToPound } from '@/util/stringFmt'
+import Dialog from 'primevue/dialog'
 export default {
     components: {
         InputText,
-        Button
+        Button,
+        Dialog
     },
-    setup() {
-
+    emits: {
+        'friend-request-sent' : (success : boolean) => {
+            if (success) {
+                return true;
+            } else {
+                return false;
+            }
+        }
+    },
+    setup(props: any, ctx: any) {
         const value = ref("");
-        const store = useStore();
-        
-        const me = store.getters.getUser;
+        const message = ref("");
+        const isModal = ref(false);
 
+        const store = useStore();
+        const me = store.getters.getUser;
 
         function handleClick(event : any) {
             const normalisedStr = hashToPound(value.value); 
             db.ref("usernames").child(normalisedStr).once( "value", snapshot => {
                 if (!snapshot.exists()) {
-                    alert("User not found");
-                } else  {
+                    message.value =("User not found");
+                    isModal.value = true;
+                    value.value = "";
+                } else {
                     const user = snapshot.val();
                     const targetUid = user.uid;
-                    //check request doesnt already exist
-                    console.log(me)
+
                     if ( me.pendingFriendRequests != undefined ) {
                         if (me.pendingFriendRequests[targetUid]) {
-                            alert("You already have a request with this user!");
+                            message.value =("You already have a request with this user!");
+                            isModal.value = true;
+                            value.value = "";
                         }
                     } else if (me.friends != undefined && me.friends[targetUid]) {
-                        alert("You already have this user as a friend!");
+                        message.value =("You already have this user as a friend!");
+                        isModal.value = true;
+                        value.value = "";
                     } else {
-                        //lets add this friend:
                         const myUid = store.getters.getUid;
                         const myName = store.getters.getName;
                         const addFriend = functions.httpsCallable("addFriend");
@@ -57,16 +79,19 @@ export default {
                             senderName: myName,
                             recipName : user.username
                         }).catch(function (error) {
-                            alert("Error adding friend, please try again: " + error);
+                            message.value =("Error adding friend, please try again: " + error);
+                            isModal.value = true;
                         }).then( () => {
-                            alert("Friend added!");
+                            message.value = ("Friend request sent!");
+                            isModal.value = true;
                             value.value = "";
+                            ctx.emit("friend-request-sent", true);
                         })
                     }
                 }
             });
         }
-        return {value, handleClick}
+        return {value, handleClick, message, isModal}
     }
 
 }
@@ -99,6 +124,4 @@ button {
 input {
     background-color: #121212;
 }
-
-
 </style>

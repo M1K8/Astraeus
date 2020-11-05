@@ -18,7 +18,6 @@ function filterForIncomingCount(userObj : object){
   if (userObj) {
     for (const [_, value] of Object.entries(userObj)) {
         if (value.type === "INCOMING") {
-          console.log(value)
           ++numOfRequests;
         }
     }
@@ -84,7 +83,7 @@ export default createStore({
     bindUser: firebaseAction( ({ commit, getters, bindFirebaseRef }) => {
       if (!getters.getBound) {
         const uid = getters.getUid;
-        console.log("user bound");
+       // console.log("user bound");
         commit("SET_BOUND", true);
         return bindFirebaseRef('user', db.ref(`users/${uid}`))
       }
@@ -93,12 +92,12 @@ export default createStore({
     unbindUser: firebaseAction( ({ commit, unbindFirebaseRef }) => {
       commit("SET_BOUND", false);
       unbindFirebaseRef('user');
-      console.log("user unbound");
+     // console.log("user unbound");
     }),
 
     setUID: ({commit}, uid) => {
       commit("SET_UID",uid);
-      console.log("uid set to " + uid);
+      //console.log("uid set to " + uid);
     },
 
     setSignup: ({commit}, isSignup) => commit("SET_SIGNUP", isSignup),
@@ -111,7 +110,7 @@ export default createStore({
     initAuth: ( {dispatch, commit, getters, state} ) => {
       return new Promise( (resolve, reject) => {
         if (state.unsubscribeAuthObserver) {
-          console.log("unsub");
+          //console.log("unsub");
           state.unsubscribeAuthObserver();
         }
         const unsub = auth.onAuthStateChanged( async (user) => {
@@ -145,7 +144,7 @@ export default createStore({
               resolve(user);
    
           } else {
-              console.log("Logged out")
+              //onsole.log("Logged out")
               await dispatch('setUID', null);
               await dispatch('unbindUser');
               resolve(null)

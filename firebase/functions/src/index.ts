@@ -1,7 +1,7 @@
 import * as functions from 'firebase-functions';
 import * as admin from 'firebase-admin'
 import * as nodemailer from 'nodemailer'
-import {smtpConfig} from './mailOpts'
+import { smtpConfig } from './mailOpts'
 
 const mailer = nodemailer.createTransport(smtpConfig);
 
@@ -18,8 +18,12 @@ admin.initializeApp();
     return ("" + number).substring(add);
 }
 
-export const addFriend = functions.region("europe-west2").https.onCall(async (data, _) => {
-    const senderUID : string = data.senderUID;
+export const addFriend = functions.region("europe-west2").https.onCall(async (data, ctx) => {
+    if (ctx.auth!.uid !== data.senderUID) {
+        return {error: "Auth mismatch"}
+    } 
+
+    const senderUID : string = ctx.auth!.uid;
     const senderName : string = data.senderName;
     const recipUID : string = data.recipUID;
     const recipName : string = data.recipName;
@@ -52,38 +56,47 @@ export const addFriend = functions.region("europe-west2").https.onCall(async (da
         recipientName: recipName,
         uid : uidRef.key
     });
+
+    return {success: true}
 })
 
-
-export const acceptFriend = functions.region("europe-west2").https.onCall(async (data, _) => {
+export const acceptFriend = functions.region("europe-west2").https.onCall(async (data, ctx) => {
+    if (ctx.auth!.uid !== data.recipUID) {
+        functions.logger.info(ctx.auth!.uid, data.senderUID)
+        return {error: "Auth mismatch"}
+    } 
     const senderUID : string = data.senderUID;
     const senderName : string = data.senderName;
-    const recipUID : string = data.recipUID;
+    const recipUID : string = ctx.auth!.uid;
     const recipName : string = data.recipName;
     const key : string = data.key;
     const db = admin.database();
+    functions.logger.info(ctx.auth!.uid, data.senderUID)
 
     await db.ref("users").child(senderUID).child("friends").child(recipUID).set(recipName);
-    await db.ref("users").child(recipUID).child("friends").child(senderUID).set(senderName);
-
     await db.ref("users").child(senderUID).child("pendingFriendRequests").child(recipUID).remove();
+
+    await db.ref("users").child(recipUID).child("friends").child(senderUID).set(senderName);
     await db.ref("users").child(recipUID).child("pendingFriendRequests").child(senderUID).remove();
 
     await db.ref("requests").child(key).remove();
+    return {success: true}
 
 })
 
-export const removeFriend = functions.region("europe-west2").https.onCall(async (data, _) => {
-    const senderUID : string = data.senderUID;
-    //const senderName : string = data.senderName;
+export const removeFriend = functions.region("europe-west2").https.onCall(async (data, ctx) => {
+    if (ctx.auth!.uid !== data.senderUID) {
+        return {error: "Auth mismatch"}
+    } 
+    const senderUID : string = ctx.auth!.uid;
     const recipUID : string = data.recipUID;
-    //const recipName : string = data.recipName;
     const db = admin.database();
 
 
     await db.ref("users").child(senderUID).child("friends").child(recipUID).remove();
 
     await db.ref("users").child(recipUID).child("friends").child(senderUID).remove();
+    return {success: true}
 })
 
 export const createUser = functions.region("europe-west2").https.onCall(async (data, _) => {
@@ -108,7 +121,7 @@ export const createUser = functions.region("europe-west2").https.onCall(async (d
     })
     .catch(function (error) {
         functions.logger.info(error);
-        retData =  { error : "Failed to create user: " + error};
+        retData = { error : "Failed to create user: " + error};
     });
 
     if (userRecord) {
@@ -165,3 +178,59 @@ export const createUser = functions.region("europe-west2").https.onCall(async (d
         return retData;
     }
 })
+
+
+export const sendInviteNoti = functions.region("europe-west2").database.ref('users/{userID}/pendingGameInvites/{inviteID}').onCreate( async (content: any, ctx) => {
+    const db = admin.database();
+    const userID = ctx.params.userID;
+
+    const getDeviceTokensPromise = db.ref(`/users/${userID}/notificationTokens`).once('value');
+
+    const results = await Promise.all([getDeviceTokensPromise]);
+    const tokensSnapshot = results[0];
+    const sender = {
+        uid : content.senderID,
+        name: content.senderName
+    }
+
+    const details = {
+        game: content.info.gameName,
+        location: content.info.location,
+        serverURL: content.info.serverURL
+    }
+
+    // Check if there are any device tokens.
+    if (!tokensSnapshot.hasChildren()) {
+        return functions.logger.info('There are no notification tokens to send to.');
+    }
+
+    functions.logger.info('There are', tokensSnapshot.numChildren(), 'tokens to send notifications to.');
+
+    // Notification details.
+    const payload = {
+    notification: {
+        title: `${sender.name} invite you to play ${details.game}!`,
+        body: `${sender.name} invite you to play ${details.game} on their ${details.location} server, ${details.serverURL}`
+    }
+    };
+
+    // Listing all tokens as an array.
+    const tokens = Object.keys(tokensSnapshot.val());
+    // Send notifications to all tokens.
+    const response = await admin.messaging().sendToDevice(tokens, payload);
+    // For each message check if there was an error.
+    const tokensToRemove : Promise<void>[] = [];
+    response.results.forEach((result, index) => {
+        const error = result.error;
+        if (error) {
+            functions.logger.error('Failure sending notification to', tokens[index], error);
+            // Cleanup the tokens who are not registered anymore.
+            if (error.code === 'messaging/invalid-registration-token' ||
+                error.code === 'messaging/registration-token-not-registered') {
+            tokensToRemove.push(tokensSnapshot.ref.child(tokens[index]).remove());
+            }
+        }
+    });
+
+    return Promise.all(tokensToRemove);
+});

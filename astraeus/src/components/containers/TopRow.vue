@@ -19,8 +19,8 @@
 <script lang="ts">
 import Vue, { computed, reactive, ref } from 'vue'
 import HomeLogo from '@/components/HomeLogo.vue'
-import SettingsContainer from '@/components/SettingsContainer.vue'
-import NotificationBar from '@/components/NotificationBar.vue'
+import SettingsContainer from '@/components/containers/SettingsContainer.vue'
+import NotificationBar from '@/components/containers/NotificationBar.vue'
 import Sidebar from 'primevue/sidebar'
 import { useStore } from 'vuex'
 export default {
