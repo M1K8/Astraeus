@@ -24,7 +24,7 @@ import { hashToPound } from '@/util/stringFmt';
 import { User } from '@/model/user';
 
 export default defineComponent({
-    setup(props) {
+    setup(props: any) {
         const name = ref(props.friend!.username)
         const uid = ref(props.friend!.uid)
         const online = ref(0);
@@ -60,7 +60,7 @@ export default defineComponent({
         friend : Object
     },
     components : {
-        ContextMenu
+        ContextMenu,
     },
     directives: {
     'tooltip': Tooltip
@@ -75,6 +75,13 @@ export default defineComponent({
         },
         'remove-friend' : (id : string) => {
             if (id) {
+                return true;
+            } else {
+                return false;
+            }
+        },
+        'invite-friend' : (blob : any) => {
+            if (blob) {
                 return true;
             } else {
                 return false;
@@ -97,9 +104,6 @@ export default defineComponent({
         }
     },
     data() {
-        let gameName = "";
-        let location = "";
-        let serverURL = "";
         return {
             items: [
             {
@@ -120,14 +124,10 @@ export default defineComponent({
                 label:'Invite to game',
                 icon:'pi pi-fw pi-plus',
                 command: (event: any) => {
-                    this.$emit("invite-friend", {friend: this.friend!, info : {
-                        gameName: "gameName",
-                        location: "location",
-                        serverURL : "serverURL",
-                    }});
+                    this.$emit("invite-friend", this.friend!);
                 }
             },
-            ]
+            ],
         }
     }
 });

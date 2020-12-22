@@ -7,21 +7,18 @@ import Vue, { defineComponent, ref } from 'vue'
 import { useStore } from 'vuex'
 import { db, messaging, vToken } from "@/firebase"
 export default defineComponent({
-    setup() {
-        const store = useStore();
+  setup() {
+      const store = useStore();
 
-        Notification.requestPermission().then( async() => {
+      Notification.requestPermission().then( async() => {
         console.log('Perms')
         const token = await messaging.getToken({vapidKey : vToken});
         if (token) {
-          console.log("token");
           db.ref("users").child(store.getters.getUid).child("notificationTokens").once('value', snapshot => {
               if (!snapshot.exists()){
                 db.ref("users").child(store.getters.getUid).child("notificationTokens").push(token);
               } else {
                 const listOfTokens : string[] = Object.values(snapshot.val());
-
-                console.log(listOfTokens);
 
                 if (!listOfTokens.includes(token)){
                     db.ref("users").child(store.getters.getUid).child("notificationTokens").push(token);
@@ -29,15 +26,14 @@ export default defineComponent({
               }
           })
         }
-        }).catch( (error) => {
-          console.log(error)
-        })
+      }).catch( (error) => {
+        console.log(error)
+      })
 
-        const username = ref(store.getters.getName);
+      const username = ref(store.getters.getName);
 
-        return {username}
-    }
-    
+      return {username}
+  }
 })
 </script>
 <style lang="scss" scoped>

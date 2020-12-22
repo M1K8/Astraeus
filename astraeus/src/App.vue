@@ -14,8 +14,9 @@ export default {
     const router = useRouter();
     const store = useStore();
 
-    messaging.onMessage( noti =>{
+    messaging.onMessage( (noti: { notification: { title: string; body: NotificationOptions|undefined; }; }) =>{
       console.log('Message received. ', noti);
+      const notif = new Notification(noti.notification.title, noti.notification.body);
     })
    
     router.beforeEach( (to, from, next) => {

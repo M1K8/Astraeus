@@ -6,7 +6,7 @@
         <form @mouseover="hoverOn" @mouseleave="hoverOff" id="main-login" :style="mainStyleObj">
             <div id="logo" :style="logoStyleObj"> <img src='@/assets/m1k.png'/> </div>
 
-            <div id="text-box" :style="textStyleObj">
+            <div class="text-box" :style="textStyleObj">
                 <span class="p-float-label">
                     <InputText id="email" type="text" v-model="emailStr" :class="{ 'p-invalid' : false} "/>
                     <label v-if="visible" for="email">Email</label>

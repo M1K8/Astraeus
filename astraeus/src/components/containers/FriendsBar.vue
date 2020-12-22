@@ -1,4 +1,5 @@
 <template>
+    <Toast position="top-right" />
     <text class="bar-label"> Friends </text>
     <div class="bar-wrapper">
         <div class="box">
@@ -6,13 +7,23 @@
             <AddFriendOrb />
         </div>
     </div>
+    
+    <teleport to="#modal-wrapper">
+        <Dialog modal=true v-model:visible="isModal">
+           <InviteFriend @invite-sent="closeModalAndSubmit" :friend="selectedFriend.friend"/>
+        </Dialog>
+    </teleport>
 </template>
 
 <script lang="ts">
 import Vue, { computed, defineComponent, reactive, ref, watchEffect, watch } from 'vue'
+import Toast from 'primevue/toast';
+import { useToast } from "primevue/usetoast";
 import FriendOrb from '@/components/FriendOrb.vue'
 import AddFriendOrb from '@/components/AddFriendOrb.vue'
-import { User } from '@/model/user';
+import InviteFriend from '@/components/function/InviteFriend.vue'
+import Dialog from 'primevue/dialog'
+import { User } from '@/model/user'
 import { useStore } from 'vuex'
 import { db, functions } from '@/firebase'
 import { hashToPound } from '@/util/stringFmt'
@@ -20,20 +31,29 @@ import { hashToPound } from '@/util/stringFmt'
 export default defineComponent({
     components : {
         FriendOrb,
-        AddFriendOrb
+        AddFriendOrb,
+        InviteFriend,
+        Dialog,
+        Toast
     },
 
     setup() {
       const store = useStore();
-
+      const toast = useToast();
       const lastMenuID = ref("");
-      
+      const isModal = ref(false);
       const friendsListGetter = computed( () => store.getters.getFriends );
-
       const emptyArr : object[] = [];
-
+      const info = reactive({ });
       const friends = reactive({
         arr : emptyArr
+      });
+
+      const selectedFriend = reactive({
+         friend : {
+           username : String,
+           uid : String
+         }
       });
 
       watchEffect( async () => {
@@ -66,23 +86,33 @@ export default defineComponent({
         })
       }
 
-      async function inviteFriend(blob: any) {
-        const myUid = store.getters.getUid;
-        const myName = store.getters.getName;
-        const friend = blob.friend;
-        const info   = blob.info;
-        const inviteFriendFB = functions.httpsCallable("inviteFriend");
-        await inviteFriendFB({
-          senderName: myName,
-          senderUID: myUid,
-          recipName: friend.username,
-          recipUID: friend.uid,
-          info: info
-        })
+      function inviteFriend(friend: any) {
+        selectedFriend.friend = friend;
+
+        isModal.value = true;
+
+        const gameInfo : any = info;
+      }
+
+      async function closeModalAndSubmit(info : any) {
+       const myUid = store.getters.getUid;
+       const myName = store.getters.getName;
+       const inviteFriendFB = functions.httpsCallable("gameInviteFriend");
+       console.log(info)
+       isModal.value = false;
+       toast.add({severity:'success', summary:'Invite Sent!', details:`Invite sent to ${selectedFriend.friend.username}`, life: 5000})
+       
+       await inviteFriendFB({
+         senderName: myName,
+         senderUID: myUid,
+         recipName: selectedFriend.friend.username,
+         recipUID: selectedFriend.friend.uid,
+         info: info
+       })
       }
 
 
-      return { friends, lastMenuID, removeFriend, inviteFriend }
+      return { friends, lastMenuID, removeFriend, inviteFriend, isModal, closeModalAndSubmit, selectedFriend }
     },
     methods: {
       hideMenu(thisID: string) {

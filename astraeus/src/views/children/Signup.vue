@@ -35,15 +35,31 @@
                     </div>                    
                 </span>
             </div>
-  
+  <!--
             <div class="text-box" id="pwbox" :style="textStyleObj">
-                <!-- THIS ONLY WORKS BECAUSE I CHANGED PASSWORD.VUE + css !-->
+
                 <span class="p-float-label ">
                     <Password id="password" v-model="pwdStr"/>
                     <label v-if="visible" for="password">Password</label>
                 </span>
-
             </div>
+            !-->
+
+            <div class="pwbox" :style="textStyleObj">
+                <span class="p-float-label ">
+                    <InputText id="password" type="password" v-model="pwdStr" :class="{ 'p-invalid' : false} "/>
+                    <label v-if="visible" for="confirm-password">Password</label>
+                    <div v-if="false">
+                        <div v-for="(error, index) of $v.$errors"
+                            :key="index"> 
+                            <small v-if="error.$property == 'pwdStr'" class="p-invalid" >
+                                {{error.$message}} 
+                            </small>
+                            </div>
+                    </div>
+                </span>
+            </div>
+
             <div class="text-box" :style="textStyleObj">
                 <span class="p-float-label ">
                     <InputText id="confirm-password" type="password" v-model="pwdConfStr" :class="{ 'p-invalid' : false} "/>
@@ -59,7 +75,7 @@
                 </span>
             </div>
 
-             <Button :disabled='isDisabled'  v-if="visible" @click="signup" id="signup" :style="loginButtStyleObj" class="p-button-success p-button-rounded p-button-raised p-button-lg">
+             <Button :disabled='isDisabled' v-if="visible" @click="signup" id="signup" :style="loginButtStyleObj" class="p-button-success p-button-rounded p-button-raised p-button-lg">
                  <p >Signup</p>
              </Button>
 
@@ -72,7 +88,7 @@
 import Vue, { computed, onMounted, reactive, ref } from 'vue'
 import InputText from 'primevue/inputtext'
 import Button from 'primevue/button';
-import Password from 'primevue/password'
+//import Password from 'primevue/password'
 import Dialog from 'primevue/dialog'
 import Tooltip from 'primevue/tooltip'
 import { db, auth, functions } from '../../firebase'
@@ -81,7 +97,7 @@ export default {
     components : {
         InputText,
         Button,
-        Password,
+        //Password,
         Dialog
     },
     directives: {
@@ -177,29 +193,29 @@ export default {
                 pwdStr.value = "";
                 pwdConfStr.value = "";        
                 errorVisible.value = true;      
-            } 
-            else if (uNameStr.value.includes("£" ) || uNameStr.value.includes("#")) {
+            } else if (uNameStr.value.includes("£" ) || uNameStr.value.includes("#")) {
                 errorMessage.value ="Username contains invalid characters.";
                 uNameStr.value = "";   
                 errorVisible.value = true;      
             } else {
-            const createUser = functions.httpsCallable("createUser");
 
-            const t = await createUser({username: uNameStr.value, email: emailStr.value, password: pwdStr.value});
+                const createUser = functions.httpsCallable("createUser");
 
-            console.log(t.data);
+                const t = await createUser({username: uNameStr.value, email: emailStr.value, password: pwdStr.value});
+                console.log(3)
 
-            if (t.data.error) {
-                errorMessage.value = t.data.error;
-                errorVisible.value = true;
-                emailStr.value = "";
-                pwdStr.value = "";
-                uNameStr.value = "";
-                pwdConfStr.value = "";
-            } else {
-                router.push( {name: 'Login', query: {signup: "true"}});
-            }
+                console.log(t.data);
 
+                if (t.data.error) {
+                    errorMessage.value = t.data.error;
+                    errorVisible.value = true;
+                    emailStr.value = "";
+                    pwdStr.value = "";
+                    uNameStr.value = "";
+                    pwdConfStr.value = "";
+                } else {
+                    router.push( {name: 'Login', query: {signup: "true"}});
+                }
             }
         }
 

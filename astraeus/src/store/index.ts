@@ -26,7 +26,7 @@ function filterForIncomingCount(userObj : object){
 }
 
 function filterForIncoming(userObj : object){
-  const retObj = [];
+  const retObj : any[] = [];
   if (userObj) {
     for (const [_, value] of Object.entries(userObj)) {
         if (value.type === "INCOMING") {
@@ -110,7 +110,6 @@ export default createStore({
     initAuth: ( {dispatch, commit, getters, state} ) => {
       return new Promise( (resolve, reject) => {
         if (state.unsubscribeAuthObserver) {
-          //console.log("unsub");
           state.unsubscribeAuthObserver();
         }
         const unsub = auth.onAuthStateChanged( async (user) => {
@@ -144,7 +143,6 @@ export default createStore({
               resolve(user);
    
           } else {
-              //onsole.log("Logged out")
               await dispatch('setUID', null);
               await dispatch('unbindUser');
               resolve(null)
